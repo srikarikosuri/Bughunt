@@ -16,14 +16,17 @@ import {
   Code2,
   Trophy,
   LayoutDashboard,
+  Bot,
+  Sparkles,
 } from 'lucide-react';
 
 interface NavbarProps {
   currentTab: string;
   onNavigate: (tab: string, param?: string) => void;
+  onOpenChat?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate }) => {
+export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, onOpenChat }) => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -84,6 +87,18 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate }) => {
               <span>Leaderboard</span>
             </button>
 
+            <button
+              onClick={() => handleNav('copilot')}
+              className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                currentTab === 'copilot'
+                  ? 'text-cyan-300 bg-cyan-950/40 shadow-sm border border-cyan-700/50'
+                  : 'text-slate-400 hover:text-cyan-300 hover:bg-slate-800/40'
+              }`}
+            >
+              <Bot className="w-4 h-4 text-cyan-400" />
+              <span>AI Copilot</span>
+            </button>
+
             {user && (
               <button
                 onClick={() => handleNav('dashboard')}
@@ -109,6 +124,19 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate }) => {
               >
                 <Shield className="w-4 h-4 text-amber-400" />
                 <span>Admin Panel</span>
+              </button>
+            )}
+
+            {/* AI Copilot Chat Button */}
+            {onOpenChat && (
+              <button
+                onClick={onOpenChat}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-gradient-to-r from-purple-950/80 to-cyan-950/80 text-cyan-300 border border-cyan-500/40 hover:border-cyan-400 hover:text-white transition-all shadow-sm shadow-cyan-950/30 cursor-pointer"
+                title="Open AI Debugging Copilot (n8n Webhook)"
+              >
+                <Bot className="w-4 h-4 text-cyan-400 animate-pulse" />
+                <span>AI Copilot</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
               </button>
             )}
           </div>
@@ -290,6 +318,19 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate }) => {
             <Trophy className="w-4 h-4 text-amber-400" />
             <span>Leaderboard</span>
           </button>
+
+          {onOpenChat && (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenChat();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 text-cyan-300 hover:bg-slate-800 rounded-lg text-left font-medium"
+            >
+              <Bot className="w-4 h-4 text-cyan-400" />
+              <span>AI Debugging Copilot (n8n)</span>
+            </button>
+          )}
 
           {user && (
             <>

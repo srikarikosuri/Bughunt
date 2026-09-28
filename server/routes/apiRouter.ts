@@ -640,3 +640,251 @@ apiRouter.get('/admin/stats', requireAdmin, (req: Request, res: Response) => {
     }),
   });
 });
+
+// -------------------------------------------------------------
+// N8N AI CHAT WEBHOOK PROXY WITH SMART FALLBACK
+// -------------------------------------------------------------
+const DEFAULT_N8N_WEBHOOK = 'https://srikari.app.n8n.cloud/webhook/8ba24de8-31ad-43e4-a4e8-9a740fb0409f/chat';
+
+function generateSmartFallbackReply(message: string, context?: any): string {
+  const lowerMsg = message.toLowerCase();
+  const title = context?.challengeTitle || '';
+  const lang = (context?.language || '').toLowerCase();
+  const code = context?.userCode || '';
+  const errorDiag = context?.errorDiagnostic || '';
+
+  // Tailored debugging responses if context is provided
+  if (code && (lowerMsg.includes('bug') || lowerMsg.includes('error') || lowerMsg.includes('fix') || lowerMsg.includes('why') || lowerMsg.includes('hint'))) {
+    if (lang.includes('python')) {
+      if (code.includes('range(0, len(arr), size - 1)')) {
+        return `🔍 **Bug Analysis for ${title || 'Python Code'}**:\n\nIn your chunking function, the loop step is \`size - 1\` instead of \`size\`:\n\`\`\`python\nfor i in range(0, len(arr), size):  # Fixed step\n    result.append(arr[i:i + size])\n\`\`\`\nThis was causing consecutive chunks to overlap and duplicate elements!`;
+      }
+      if (code.includes('left = mid') || code.includes('right = mid')) {
+        return `🔍 **Binary Search Infinite Loop Detected**:\n\nWhen \`arr[mid] < target\`, pointers must advance past \`mid\`:\n\`\`\`python\nelif arr[mid] < target:\n    left = mid + 1\nelse:\n    right = mid - 1\n\`\`\`\nBecause integer division \`(left + right) // 2\` rounds down, leaving \`left = mid\` creates an infinite loop when \`left + 1 == right\`.`;
+      }
+      if (code.includes('clean_text == reversed_text') && !code.includes(':')) {
+        return `🔍 **Syntax Glitch Detected**:\n\nIn Python, \`def\`, \`if\`, and \`else\` statements must always end with a colon \`:\`, and all statements inside a block must share consistent 4-space indentation!`;
+      }
+      if (code.includes("record['scores']")) {
+        return `🔍 **KeyError / ZeroDivision Guard Needed**:\n\nUse \`scores = record.get('scores', [])\` and verify \`if not scores: return 0.0\` before computing the average to avoid division by zero!`;
+      }
+    }
+
+    if (lang.includes('javascript') || lang.includes('js')) {
+      if (code.includes('var i = 0')) {
+        return `🔍 **JavaScript Scope Defect**:\n\nUsing \`var i = 0\` hoists a single function-scoped variable shared by all closure callbacks. Change to block-scoped \`let i = 0\`:\n\`\`\`javascript\nfor (let i = 0; i < n; i++) {\n  funcs.push(val => val * i);\n}\n\`\`\``;
+      }
+      if (code.includes('.country.code')) {
+        return `🔍 **Undefined Property Access**:\n\nIf any parent object is undefined, chaining properties throws a TypeError. Use optional chaining:\n\`\`\`javascript\nconst code = user?.profile?.address?.country?.code;\nreturn code ? code.toUpperCase() : 'UNKNOWN';\n\`\`\``;
+      }
+      if (code.includes('map[nums[i]] = i')) {
+        return `🔍 **Two Sum Hash Map Overwrite**:\n\nStoring elements before checking duplicates causes identical numbers (like \`[3, 3]\`) to overwrite indices. Check \`map.has(complement)\` before inserting!`;
+      }
+    }
+
+    if (lang.includes('java')) {
+      if (code.includes('== expectedSecret')) {
+        return `🔍 **Java String Reference Equality Bug**:\n\nIn Java, \`==\` checks whether both variables reference the exact same memory address. To compare string values, use \`.equals()\`:\n\`\`\`java\nreturn receivedToken.equals(expectedSecret);\n\`\`\``;
+      }
+      if (code.includes('i <= arr.length')) {
+        return `🔍 **Array Index Out of Bounds**:\n\nThe last valid index is \`arr.length - 1\`. Also, only loop up to \`arr.length / 2\` when reversing in-place, otherwise items are swapped back to their initial spots!`;
+      }
+      if (code.includes('fib(n - 1) + fib(n - 2)')) {
+        return `🔍 **Recursion Stack Overflow**:\n\nAdd a non-positive base case \`if (n <= 0) return 0;\` and convert the exponential recursion into an iterative O(n) loop to prevent StackOverflowError!`;
+      }
+    }
+
+    if (lang.includes('c')) {
+      if (code.includes('scanf("%d", n)')) {
+        return `🔍 **C Pointer & Specifier Bug**:\n\n1. In \`scanf\`, pass the address of \`n\`: \`scanf("%d", &n)\`.\n2. In \`printf\`, use \`%d\` instead of \`%s\` to print integers.\n3. Add \`#include <stdio.h>\` at the top!`;
+      }
+      if (code.includes('str[len - i]')) {
+        return `🔍 **C String Null Terminator Corruption**:\n\nSwapping with index \`len - i\` touches index \`len\`, which holds the \`\\0\` null terminator. Swap with \`len - 1 - i\` instead!`;
+      }
+    }
+  }
+
+  // General helpful responses
+  if (lowerMsg.includes('hello') || lowerMsg.includes('hi') || lowerMsg.includes('hey')) {
+    return `👋 Hello! I am your **BugHunt AI Debugging Copilot**.\n\nI can help you:\n• Diagnose syntax, logical, runtime, and algorithmic bugs\n• Provide progressive hints without giving away the full answer\n• Review code for edge cases and performance bottlenecks\n\nWhat challenge or code snippet are you working on right now?`;
+  }
+
+  if (lowerMsg.includes('hint')) {
+    return `💡 **Debugging Hint**:\n1. Check your loop boundaries and termination conditions.\n2. Verify edge cases (e.g. empty lists, single elements, negative numbers, null values).\n3. Trace the values of your variables with print statements or step through one test case manually.`;
+  }
+
+  return `🤖 **BugHunt AI Copilot**:\n\nI received your query: *" ${message} "*\n\n${
+    title ? `Active Challenge: **${title}** (${lang})\n` : ''
+  }To squash tricky bugs, ensure:\n1. Syntax and type requirements for **${lang || 'your language'}** are respected.\n2. Off-by-one errors and zero-indexing bounds are handled.\n3. Run against sample test cases in the arena console!`;
+}
+
+apiRouter.post('/n8n/chat', async (req: Request, res: Response) => {
+  const {
+    message,
+    sessionId = `bughunt-session-${Date.now()}`,
+    webhookUrl = DEFAULT_N8N_WEBHOOK,
+    context = null,
+    allowFallback = true,
+  } = req.body;
+
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ error: 'Message is required.' });
+  }
+
+  // Build payload compatible with n8n Chat Trigger & Webhook Nodes
+  const payload = {
+    action: 'sendMessage',
+    sessionId,
+    chatInput: message,
+    message,
+    metadata: {
+      platform: 'BugHunt',
+      timestamp: new Date().toISOString(),
+      ...(context && { context }),
+    },
+  };
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout
+
+    let n8nResponse: globalThis.Response | null = null;
+    let responseStatus = 0;
+    let responseText = '';
+
+    try {
+      n8nResponse = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json, text/plain, */*',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      responseStatus = n8nResponse.status;
+      responseText = await n8nResponse.text();
+    } catch (fetchErr: any) {
+      clearTimeout(timeoutId);
+      if (!allowFallback) throw fetchErr;
+      // Fallback if network/webhook unreachable
+      const fallbackReply = generateSmartFallbackReply(message, context);
+      return res.json({
+        reply: fallbackReply,
+        source: 'local_fallback',
+        isFallback: true,
+        reason: fetchErr.message,
+        sessionId,
+      });
+    }
+
+    // If n8n returned 404 (workflow inactive or not listening)
+    if (responseStatus === 404) {
+      if (allowFallback) {
+        const fallbackReply = generateSmartFallbackReply(message, context);
+        return res.json({
+          reply: fallbackReply,
+          source: 'local_fallback',
+          isFallback: true,
+          n8nStatus: 404,
+          webhookUrl,
+          n8nHint:
+            'n8n workflow is currently Inactive. In your n8n Cloud canvas, flip the top-right switch from Inactive to Active and click Save to route requests through your live n8n workflow.',
+          sessionId,
+        });
+      }
+
+      return res.status(404).json({
+        error: 'n8n Webhook returned 404',
+        status: 404,
+        details: responseText,
+        tip: 'In your n8n Cloud canvas, toggle the top-right switch from Inactive to Active and click Save.',
+      });
+    }
+
+    if (!n8nResponse.ok) {
+      if (allowFallback) {
+        const fallbackReply = generateSmartFallbackReply(message, context);
+        return res.json({
+          reply: fallbackReply,
+          source: 'local_fallback',
+          isFallback: true,
+          n8nStatus: responseStatus,
+          reason: `n8n returned ${responseStatus}: ${responseText.slice(0, 100)}`,
+          sessionId,
+        });
+      }
+
+      return res.status(responseStatus).json({
+        error: `n8n webhook returned status ${responseStatus}`,
+        status: responseStatus,
+        details: responseText,
+      });
+    }
+
+    // Try parsing as JSON or return raw text
+    try {
+      const json = JSON.parse(responseText);
+      let replyText = '';
+
+      if (typeof json === 'string') {
+        replyText = json;
+      } else if (json.output) {
+        replyText = typeof json.output === 'string' ? json.output : JSON.stringify(json.output);
+      } else if (json.response) {
+        replyText = typeof json.response === 'string' ? json.response : JSON.stringify(json.response);
+      } else if (json.text) {
+        replyText = typeof json.text === 'string' ? json.text : JSON.stringify(json.text);
+      } else if (json.message) {
+        replyText = typeof json.message === 'string' ? json.message : JSON.stringify(json.message);
+      } else if (Array.isArray(json) && json.length > 0) {
+        const first = json[0];
+        replyText =
+          first.json?.output ||
+          first.json?.response ||
+          first.json?.text ||
+          first.output ||
+          first.text ||
+          JSON.stringify(first);
+      } else {
+        replyText = JSON.stringify(json, null, 2);
+      }
+
+      return res.json({
+        reply: replyText,
+        raw: json,
+        source: 'n8n_live',
+        sessionId,
+      });
+    } catch {
+      return res.json({
+        reply: responseText,
+        source: 'n8n_live',
+        sessionId,
+      });
+    }
+  } catch (err: any) {
+    const isTimeout = err.name === 'AbortError';
+    if (allowFallback) {
+      const fallbackReply = generateSmartFallbackReply(message, context);
+      return res.json({
+        reply: fallbackReply,
+        source: 'local_fallback',
+        isFallback: true,
+        isTimeout,
+        sessionId,
+      });
+    }
+
+    return res.status(500).json({
+      error: isTimeout
+        ? 'n8n chat webhook timed out (waited 12s).'
+        : `Could not connect to n8n webhook: ${err.message}`,
+      isTimeout,
+    });
+  }
+});
+
+

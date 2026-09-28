@@ -14,6 +14,7 @@ import {
   Coffee,
   Sparkles,
   Users,
+  Bot,
 } from 'lucide-react';
 import { BugSpotterPreview } from '../components/BugSpotterPreview';
 
@@ -53,7 +54,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               </p>
 
               {/* CTAs */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-2">
                 <button
                   onClick={() => onNavigate('arena')}
                   className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-bold text-white bg-gradient-to-r from-purple-600 to-cyan-500 rounded-xl hover:opacity-95 transition-all shadow-lg shadow-purple-600/25 cursor-pointer"
@@ -63,10 +64,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 </button>
 
                 <button
-                  onClick={() => onNavigate('auth', 'register')}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-semibold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 rounded-xl border border-slate-800 transition-colors cursor-pointer"
+                  onClick={() => onNavigate('copilot')}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3.5 text-sm font-semibold text-cyan-300 hover:text-white bg-gradient-to-r from-purple-950/60 to-cyan-950/60 hover:bg-slate-800 rounded-xl border border-cyan-500/40 transition-colors cursor-pointer"
                 >
-                  <span>Create Free Account</span>
+                  <Bot className="w-4 h-4 text-cyan-400" />
+                  <span>Chat with AI Copilot</span>
+                </button>
+
+                <button
+                  onClick={() => onNavigate('auth', 'register')}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3.5 text-sm font-semibold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 rounded-xl border border-slate-800 transition-colors cursor-pointer"
+                >
+                  <span>Register</span>
                 </button>
               </div>
 

@@ -39,6 +39,12 @@ Solve algorithmic bugs, syntax slips, logic fallacies, and runtime errors, maint
    - Configure public and hidden test cases, progressive hints, and starter vs. correct code.
    - Platform analytics: total hunters, overall pass rate, and submission metrics.
 
+6. **n8n AI Copilot Integration**
+   - Connected directly to the user's n8n cloud webhook (`https://srikari.app.n8n.cloud/webhook/8ba24de8-31ad-43e4-a4e8-9a740fb0409f/chat`).
+   - Floating chat drawer accessible globally from the bottom-right corner and navbar.
+   - Context-aware debugging: automatically packages current challenge title, language, user code, and sandbox errors.
+   - Toggle support between Production (`/webhook/`) and Test Mode (`/webhook-test/`).
+
 ---
 
 ## 📁 Project Structure

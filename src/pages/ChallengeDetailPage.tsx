@@ -15,6 +15,7 @@ import {
   FileCode,
   Eye,
   ShieldCheck,
+  Bot,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -27,12 +28,14 @@ interface ChallengeDetailPageProps {
   challengeId: string;
   onBack: () => void;
   onNavigateToAuth: () => void;
+  onOpenChatWithContext?: (context: { title: string; language: string; code: string; latestError?: string }) => void;
 }
 
 export const ChallengeDetailPage: React.FC<ChallengeDetailPageProps> = ({
   challengeId,
   onBack,
   onNavigateToAuth,
+  onOpenChatWithContext,
 }) => {
   const { user, refreshUser } = useAuth();
   const [challenge, setChallenge] = useState<ChallengeDetail | null>(null);
@@ -237,7 +240,25 @@ export const ChallengeDetailPage: React.FC<ChallengeDetailPageProps> = ({
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2 self-end sm:self-auto">
+        <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap">
+          {onOpenChatWithContext && (
+            <button
+              onClick={() => {
+                onOpenChatWithContext({
+                  title: challenge.title,
+                  language: challenge.language,
+                  code,
+                  latestError: rawConsoleOutput || undefined,
+                });
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-purple-950/90 to-cyan-950/90 text-cyan-300 border border-cyan-500/50 hover:border-cyan-400 hover:text-white transition-all shadow-sm shadow-cyan-950/40 cursor-pointer"
+              title="Ask connected n8n AI agent about this challenge"
+            >
+              <Bot className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+              <span>Ask AI Copilot</span>
+            </button>
+          )}
+
           <button
             onClick={handleResetCode}
             className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 hover:bg-slate-800 transition-colors"

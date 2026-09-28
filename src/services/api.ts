@@ -144,4 +144,26 @@ export const api = {
   async getAdminStats() {
     return this.request<AdminStats>('/admin/stats');
   },
+
+  // n8n Chat Webhook
+  async sendN8nChat(body: {
+    message: string;
+    sessionId?: string;
+    webhookUrl?: string;
+    context?: any;
+    allowFallback?: boolean;
+  }) {
+    return this.request<{
+      reply: string;
+      raw?: any;
+      sessionId: string;
+      source?: 'n8n_live' | 'local_fallback';
+      isFallback?: boolean;
+      n8nStatus?: number;
+      n8nHint?: string;
+    }>('/n8n/chat', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  },
 };

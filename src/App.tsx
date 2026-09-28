@@ -11,12 +11,21 @@ import { LeaderboardPage } from './pages/LeaderboardPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdminPage } from './pages/AdminPage';
 import { AuthPage } from './pages/AuthPage';
+import { AgentChatPage } from './pages/AgentChatPage';
+import { N8nChatWidget } from './components/N8nChatWidget';
 
 function AppContent() {
   const { user, loading } = useAuth();
   const [currentTab, setCurrentTab] = useState<string>('landing');
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
   const [authMode, setAuthMode] = useState<'login' | 'register' | 'forgot'>('login');
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [challengeContext, setChallengeContext] = useState<{
+    title: string;
+    language: string;
+    code: string;
+    latestError?: string;
+  } | null>(null);
 
   // Sync hash routing for shareable links
   useEffect(() => {
@@ -58,9 +67,23 @@ function AppContent() {
     window.scrollTo(0, 0);
   };
 
+  const handleOpenChatWithContext = (context: {
+    title: string;
+    language: string;
+    code: string;
+    latestError?: string;
+  }) => {
+    setChallengeContext(context);
+    setIsChatOpen(true);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#0a0e17] text-slate-100 font-sans selection:bg-purple-600/30 selection:text-purple-200">
-      <Navbar currentTab={currentTab} onNavigate={navigateTo} />
+      <Navbar
+        currentTab={currentTab}
+        onNavigate={navigateTo}
+        onOpenChat={() => setIsChatOpen(true)}
+      />
 
       <main className="flex-1">
         {currentTab === 'landing' && <LandingPage onNavigate={navigateTo} />}
@@ -74,6 +97,7 @@ function AppContent() {
             challengeId={activeChallengeId}
             onBack={() => navigateTo('arena')}
             onNavigateToAuth={() => navigateTo('auth', 'login')}
+            onOpenChatWithContext={handleOpenChatWithContext}
           />
         )}
 
@@ -87,6 +111,10 @@ function AppContent() {
 
         {currentTab === 'admin' && <AdminPage />}
 
+        {(currentTab === 'copilot' || currentTab === 'agent' || currentTab === 'chat') && (
+          <AgentChatPage />
+        )}
+
         {currentTab === 'auth' && (
           <AuthPage
             initialMode={authMode}
@@ -96,6 +124,13 @@ function AppContent() {
       </main>
 
       <Footer onNavigate={navigateTo} />
+
+      {/* n8n AI Chat Assistant Widget */}
+      <N8nChatWidget
+        currentChallengeContext={challengeContext}
+        isOpenExternal={isChatOpen}
+        onToggleExternal={setIsChatOpen}
+      />
     </div>
   );
 }
