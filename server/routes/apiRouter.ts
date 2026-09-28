@@ -1,0 +1,642 @@
+import express, { Request, Response } from 'express';
+import { db, hashPassword, User } from '../db/store.js';
+import { executeInSandbox } from '../sandbox/runner.js';
+
+export const apiRouter = express.Router();
+
+// Simple JWT-like bearer token simulation
+// In production or development, token is base64 encoded user info or secret
+function createToken(user: User): string {
+  return Buffer.from(JSON.stringify({ id: user.id, email: user.email, role: user.role, time: Date.now() })).toString('base64');
+}
+
+function getUserFromAuthHeader(req: Request): User | null {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+  const token = authHeader.slice(7);
+  try {
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
+    if (!decoded.id) return null;
+    return db.getUserById(decoded.id) || null;
+  } catch {
+    return null;
+  }
+}
+
+function calculateLevel(xp: number): number {
+  // RPG curve: Level 1 at 0 XP, Level 2 at 25 XP, Level 3 at 100 XP, Level 4 at 225 XP, etc.
+  return Math.floor(Math.sqrt(xp / 25)) + 1;
+}
+
+// -------------------------------------------------------------
+// AUTH ROUTES
+// -------------------------------------------------------------
+
+apiRouter.post('/auth/register', (req: Request, res: Response) => {
+  const { email, username, password, preferred_language = 'python' } = req.body;
+
+  if (!email || !username || !password) {
+    return res.status(400).json({ error: 'Email, username, and password are required.' });
+  }
+
+  if (db.getUserByEmail(email)) {
+    return res.status(409).json({ error: 'A user with this email already exists.' });
+  }
+
+  if (db.getUserByUsername(username)) {
+    return res.status(409).json({ error: 'Username is already taken.' });
+  }
+
+  const user = db.createUser({
+    email,
+    username,
+    password_hash: hashPassword(password),
+    avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(username)}`,
+    bio: 'Coding enthusiast on BugHunt.',
+    preferred_language,
+    github_url: '',
+    role: 'user',
+  });
+
+  const token = createToken(user);
+  const { password_hash, ...safeUser } = user;
+  return res.status(201).json({ user: safeUser, token });
+});
+
+apiRouter.post('/auth/login', (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required.' });
+  }
+
+  const user = db.getUserByEmail(email);
+  if (!user || user.password_hash !== hashPassword(password)) {
+    return res.status(401).json({ error: 'Invalid email or password.' });
+  }
+
+  // Update last active
+  db.updateUser(user.id, { last_active: new Date().toISOString() });
+
+  const token = createToken(user);
+  const { password_hash, ...safeUser } = user;
+  return res.json({ user: safeUser, token });
+});
+
+apiRouter.get('/auth/me', (req: Request, res: Response) => {
+  const user = getUserFromAuthHeader(req);
+  if (!user) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  const { password_hash, ...safeUser } = user;
+  return res.json({ user: safeUser });
+});
+
+apiRouter.post('/auth/forgot-password', (req: Request, res: Response) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+  const user = db.getUserByEmail(email);
+  // Always return success message for security, plus mock reset token for demo
+  return res.json({
+    message: user
+      ? `Password reset link sent to ${email}. Check your inbox!`
+      : 'If that email exists in our records, a reset link has been dispatched.',
+  });
+});
+
+apiRouter.put('/auth/profile', (req: Request, res: Response) => {
+  const user = getUserFromAuthHeader(req);
+  if (!user) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  const { bio, avatar, preferred_language, github_url } = req.body;
+  const updated = db.updateUser(user.id, {
+    ...(bio !== undefined && { bio }),
+    ...(avatar !== undefined && { avatar }),
+    ...(preferred_language !== undefined && { preferred_language }),
+    ...(github_url !== undefined && { github_url }),
+  });
+
+  if (!updated) return res.status(404).json({ error: 'User not found' });
+  const { password_hash, ...safeUser } = updated;
+  return res.json({ user: safeUser });
+});
+
+// -------------------------------------------------------------
+// CHALLENGES ROUTES
+// -------------------------------------------------------------
+
+apiRouter.get('/challenges', (req: Request, res: Response) => {
+  const user = getUserFromAuthHeader(req);
+  const challenges = db.getChallenges();
+
+  // Return challenges without hidden test cases and without correct solution
+  const sanitized = challenges.map((c) => {
+    const isSolved = user ? db.hasUserSolvedChallenge(user.id, c.id) : false;
+    const testCasesCount = db.getTestCases(c.id).length;
+    return {
+      id: c.id,
+      title: c.title,
+      slug: c.slug,
+      language: c.language,
+      difficulty: c.difficulty,
+      category: c.category,
+      xp_reward: c.xp_reward,
+      description: c.description,
+      is_daily: c.is_daily,
+      is_solved: isSolved,
+      total_tests: testCasesCount,
+    };
+  });
+
+  return res.json(sanitized);
+});
+
+apiRouter.get('/challenges/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const challenge = db.getChallengeById(id);
+  if (!challenge) {
+    return res.status(404).json({ error: 'Challenge not found' });
+  }
+
+  const user = getUserFromAuthHeader(req);
+  const isSolved = user ? db.hasUserSolvedChallenge(user.id, challenge.id) : false;
+  // NEVER expose hidden test cases or correct_solution to the client!
+  const publicTestCases = db.getPublicTestCases(challenge.id);
+
+  return res.json({
+    id: challenge.id,
+    title: challenge.title,
+    slug: challenge.slug,
+    language: challenge.language,
+    difficulty: challenge.difficulty,
+    category: challenge.category,
+    xp_reward: challenge.xp_reward,
+    description: challenge.description,
+    broken_code: challenge.broken_code,
+    hints: challenge.hints,
+    is_daily: challenge.is_daily,
+    is_solved: isSolved,
+    sample_test_cases: publicTestCases,
+  });
+});
+
+// Run Code against visible test cases or custom input in isolated sandbox
+apiRouter.post('/challenges/run', async (req: Request, res: Response) => {
+  const { language, code, custom_input, challenge_id } = req.body;
+
+  if (!language || typeof code !== 'string') {
+    return res.status(400).json({ error: 'Language and code are required.' });
+  }
+
+  // If custom input is provided, run just that
+  if (custom_input !== undefined) {
+    const result = await executeInSandbox(language, code, custom_input);
+    return res.json({
+      type: 'custom',
+      result,
+    });
+  }
+
+  // Otherwise run against public test cases for the challenge
+  let testCases: { input: string; expected_output: string }[] = [];
+  if (challenge_id) {
+    testCases = db.getPublicTestCases(challenge_id);
+  }
+
+  if (testCases.length === 0) {
+    const result = await executeInSandbox(language, code, '');
+    return res.json({
+      type: 'simple',
+      result,
+    });
+  }
+
+  const runs = [];
+  let allPassed = true;
+
+  for (let i = 0; i < testCases.length; i++) {
+    const tc = testCases[i];
+    const execRes = await executeInSandbox(language, code, tc.input);
+    const passed = execRes.stdout.trim() === tc.expected_output.trim() && !execRes.isError;
+    if (!passed) allPassed = false;
+
+    runs.push({
+      caseNumber: i + 1,
+      input: tc.input,
+      expected: tc.expected_output,
+      actual: execRes.stdout,
+      stderr: execRes.stderr,
+      passed,
+      executionTimeMs: execRes.executionTimeMs,
+      isTimeout: execRes.isTimeout,
+    });
+  }
+
+  return res.json({
+    type: 'test_cases',
+    allPassed,
+    runs,
+  });
+});
+
+// Submit Solution: runs against ALL test cases including hidden ones
+apiRouter.post('/challenges/:id/submit', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { code, language } = req.body;
+
+  const challenge = db.getChallengeById(id);
+  if (!challenge) {
+    return res.status(404).json({ error: 'Challenge not found' });
+  }
+
+  const user = getUserFromAuthHeader(req);
+  if (!user) {
+    return res.status(401).json({ error: 'Please log in to submit solutions and earn XP.' });
+  }
+
+  const allTestCases = db.getTestCases(challenge.id);
+  const testResults = [];
+  let passedCount = 0;
+  let totalExecutionTime = 0;
+  let firstErrorMessage = '';
+
+  for (let i = 0; i < allTestCases.length; i++) {
+    const tc = allTestCases[i];
+    const execRes = await executeInSandbox(language || challenge.language, code, tc.input);
+    totalExecutionTime += execRes.executionTimeMs;
+
+    const isMatch = execRes.stdout.trim() === tc.expected_output.trim() && !execRes.isError;
+    if (isMatch) {
+      passedCount++;
+    } else if (!firstErrorMessage) {
+      firstErrorMessage = execRes.stderr || `Expected '${tc.expected_output}', got '${execRes.stdout}'`;
+    }
+
+    testResults.push({
+      caseNumber: i + 1,
+      isHidden: tc.is_hidden,
+      input: tc.is_hidden ? '[Hidden Test Case]' : tc.input,
+      expected: tc.is_hidden ? '[Hidden]' : tc.expected_output,
+      actual: tc.is_hidden ? (isMatch ? '[Hidden - Passed]' : '[Hidden - Failed]') : execRes.stdout,
+      passed: isMatch,
+      executionTimeMs: execRes.executionTimeMs,
+      stderr: tc.is_hidden ? (isMatch ? '' : 'Hidden test case failed.') : execRes.stderr,
+    });
+  }
+
+  const allPassed = passedCount === allTestCases.length && allTestCases.length > 0;
+  const alreadySolved = db.hasUserSolvedChallenge(user.id, challenge.id);
+
+  let xpEarned = 0;
+  const newlyUnlockedBadges = [];
+
+  if (allPassed) {
+    // Award XP ONLY ONCE per challenge to prevent farming!
+    if (!alreadySolved) {
+      xpEarned = challenge.xp_reward;
+      const newTotalXp = user.xp + xpEarned;
+      const newLevel = calculateLevel(newTotalXp);
+
+      db.updateUser(user.id, {
+        xp: newTotalXp,
+        level: newLevel,
+        last_active: new Date().toISOString(),
+      });
+
+      db.recordDailyActivity(user.id, xpEarned);
+
+      // Check Badges
+      // 1. First Bug Fixed
+      const b1 = db.awardBadge(user.id, 'first-bug-fixed');
+      if (b1) newlyUnlockedBadges.push(b1);
+
+      // 2. Language Pro badges
+      const userSubs = db.getSubmissionsByUser(user.id);
+      const passedPy = userSubs.filter((s) => s.status === 'passed' && s.language === 'python').length + (challenge.language === 'python' ? 1 : 0);
+      if (passedPy >= 3) {
+        const bPy = db.awardBadge(user.id, 'python-pro');
+        if (bPy) newlyUnlockedBadges.push(bPy);
+      }
+
+      const passedJs = userSubs.filter((s) => s.status === 'passed' && s.language === 'javascript').length + (challenge.language === 'javascript' ? 1 : 0);
+      if (passedJs >= 3) {
+        const bJs = db.awardBadge(user.id, 'js-wizard');
+        if (bJs) newlyUnlockedBadges.push(bJs);
+      }
+
+      const passedC = userSubs.filter((s) => s.status === 'passed' && s.language === 'c').length + (challenge.language === 'c' ? 1 : 0);
+      if (passedC >= 2) {
+        const bC = db.awardBadge(user.id, 'c-hacker');
+        if (bC) newlyUnlockedBadges.push(bC);
+      }
+
+      const passedJava = userSubs.filter((s) => s.status === 'passed' && s.language === 'java').length + (challenge.language === 'java' ? 1 : 0);
+      if (passedJava >= 2) {
+        const bJava = db.awardBadge(user.id, 'java-titan');
+        if (bJava) newlyUnlockedBadges.push(bJava);
+      }
+
+      // 3. Debugging Master (10+ solved)
+      const solvedChallengesSet = new Set(userSubs.filter((s) => s.status === 'passed').map((s) => s.challenge_id));
+      solvedChallengesSet.add(challenge.id);
+      if (solvedChallengesSet.size >= 10) {
+        const bMaster = db.awardBadge(user.id, 'debugging-master');
+        if (bMaster) newlyUnlockedBadges.push(bMaster);
+      }
+    }
+  }
+
+  // Create submission record
+  const submission = db.createSubmission({
+    user_id: user.id,
+    challenge_id: challenge.id,
+    code,
+    language: language || challenge.language,
+    status: allPassed ? 'passed' : 'failed',
+    passed_tests: passedCount,
+    total_tests: allTestCases.length,
+    execution_time_ms: totalExecutionTime,
+    xp_earned: xpEarned,
+    error_message: allPassed ? '' : firstErrorMessage,
+  });
+
+  const updatedUser = db.getUserById(user.id);
+  const { password_hash, ...safeUser } = updatedUser!;
+
+  return res.json({
+    status: allPassed ? 'passed' : 'failed',
+    passed_tests: passedCount,
+    total_tests: allTestCases.length,
+    xp_earned: xpEarned,
+    already_solved: alreadySolved,
+    test_results: testResults,
+    submission_id: submission.id,
+    user: safeUser,
+    newly_unlocked_badges: newlyUnlockedBadges,
+  });
+});
+
+// -------------------------------------------------------------
+// USER PROGRESS & DASHBOARD ROUTES
+// -------------------------------------------------------------
+
+apiRouter.get('/user/progress', (req: Request, res: Response) => {
+  const user = getUserFromAuthHeader(req);
+  if (!user) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  const submissions = db.getSubmissionsByUser(user.id);
+  const userBadges = db.getUserBadges(user.id);
+  const dailyActivity = db.getUserDailyActivity(user.id);
+  const challenges = db.getChallenges();
+
+  const solvedIds = new Set(
+    submissions.filter((s) => s.status === 'passed').map((s) => s.challenge_id)
+  );
+
+  // Language breakdown
+  const languageStats: Record<string, { total: number; solved: number }> = {
+    python: { total: 0, solved: 0 },
+    javascript: { total: 0, solved: 0 },
+    java: { total: 0, solved: 0 },
+    c: { total: 0, solved: 0 },
+  };
+
+  challenges.forEach((c) => {
+    if (languageStats[c.language]) {
+      languageStats[c.language].total += 1;
+      if (solvedIds.has(c.id)) {
+        languageStats[c.language].solved += 1;
+      }
+    }
+  });
+
+  // Recommended challenges: unsolved ones matching preferred language or easiest first
+  const recommended = challenges
+    .filter((c) => !solvedIds.has(c.id))
+    .sort((a, b) => {
+      if (a.language === user.preferred_language && b.language !== user.preferred_language) return -1;
+      if (b.language === user.preferred_language && a.language !== user.preferred_language) return 1;
+      return a.xp_reward - b.xp_reward;
+    })
+    .slice(0, 3)
+    .map((c) => ({
+      id: c.id,
+      title: c.title,
+      slug: c.slug,
+      language: c.language,
+      difficulty: c.difficulty,
+      category: c.category,
+      xp_reward: c.xp_reward,
+    }));
+
+  // Daily challenge
+  const dailyChallenge = challenges.find((c) => c.is_daily) || challenges[0];
+
+  return res.json({
+    user: {
+      id: user.id,
+      username: user.username,
+      avatar: user.avatar,
+      bio: user.bio,
+      preferred_language: user.preferred_language,
+      github_url: user.github_url,
+      role: user.role,
+      xp: user.xp,
+      level: user.level,
+      streak: user.streak,
+    },
+    solved_count: solvedIds.size,
+    total_challenges: challenges.length,
+    language_stats: languageStats,
+    badges: userBadges,
+    daily_activity: dailyActivity,
+    recent_submissions: submissions.slice(0, 8),
+    recommended_challenges: recommended,
+    daily_challenge: {
+      id: dailyChallenge.id,
+      title: dailyChallenge.title,
+      slug: dailyChallenge.slug,
+      language: dailyChallenge.language,
+      difficulty: dailyChallenge.difficulty,
+      xp_reward: dailyChallenge.xp_reward,
+      is_solved: solvedIds.has(dailyChallenge.id),
+    },
+  });
+});
+
+// -------------------------------------------------------------
+// LEADERBOARD ROUTE
+// -------------------------------------------------------------
+
+apiRouter.get('/leaderboard', (req: Request, res: Response) => {
+  const users = db.getUsers();
+  const allSubmissions = db.getSubmissions();
+
+  const leaderboard = users
+    .map((u) => {
+      const solvedCount = new Set(
+        allSubmissions.filter((s) => s.user_id === u.id && s.status === 'passed').map((s) => s.challenge_id)
+      ).size;
+      const badgesCount = db.getUserBadges(u.id).length;
+
+      return {
+        id: u.id,
+        username: u.username,
+        avatar: u.avatar,
+        level: u.level,
+        xp: u.xp,
+        streak: u.streak,
+        preferred_language: u.preferred_language,
+        badges_count: badgesCount,
+        challenges_solved: solvedCount,
+      };
+    })
+    .sort((a, b) => b.xp - a.xp);
+
+  return res.json(leaderboard);
+});
+
+// -------------------------------------------------------------
+// ADMIN PANEL ROUTES (Role-Based Access Control)
+// -------------------------------------------------------------
+
+function requireAdmin(req: Request, res: Response, next: express.NextFunction) {
+  const user = getUserFromAuthHeader(req);
+  if (!user || user.role !== 'admin') {
+    return res.status(403).json({ error: 'Access forbidden: Administrator privileges required.' });
+  }
+  next();
+}
+
+apiRouter.get('/admin/challenges', requireAdmin, (req: Request, res: Response) => {
+  const challenges = db.getChallenges();
+  const fullChallenges = challenges.map((c) => ({
+    ...c,
+    test_cases: db.getTestCases(c.id),
+  }));
+  return res.json(fullChallenges);
+});
+
+apiRouter.post('/admin/challenges', requireAdmin, (req: Request, res: Response) => {
+  const {
+    title,
+    language,
+    difficulty,
+    category,
+    xp_reward,
+    description,
+    broken_code,
+    correct_solution,
+    hints = [],
+    is_daily = false,
+    test_cases = [],
+  } = req.body;
+
+  if (!title || !language || !difficulty || !category || !broken_code || !correct_solution) {
+    return res.status(400).json({ error: 'Missing required challenge fields.' });
+  }
+
+  const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
+  const newChallenge = db.createChallenge({
+    title,
+    slug,
+    language,
+    difficulty,
+    category,
+    xp_reward: Number(xp_reward) || (difficulty === 'easy' ? 10 : difficulty === 'medium' ? 25 : 50),
+    description,
+    broken_code,
+    correct_solution,
+    hints,
+    is_daily: Boolean(is_daily),
+  });
+
+  if (test_cases && Array.isArray(test_cases)) {
+    db.setTestCasesForChallenge(newChallenge.id, test_cases);
+  }
+
+  return res.status(201).json({
+    challenge: newChallenge,
+    test_cases: db.getTestCases(newChallenge.id),
+  });
+});
+
+apiRouter.put('/admin/challenges/:id', requireAdmin, (req: Request, res: Response) => {
+  const { id } = req.params;
+  const {
+    title,
+    language,
+    difficulty,
+    category,
+    xp_reward,
+    description,
+    broken_code,
+    correct_solution,
+    hints,
+    is_daily,
+    test_cases,
+  } = req.body;
+
+  const updated = db.updateChallenge(id, {
+    ...(title && { title }),
+    ...(language && { language }),
+    ...(difficulty && { difficulty }),
+    ...(category && { category }),
+    ...(xp_reward !== undefined && { xp_reward: Number(xp_reward) }),
+    ...(description && { description }),
+    ...(broken_code && { broken_code }),
+    ...(correct_solution && { correct_solution }),
+    ...(hints && { hints }),
+    ...(is_daily !== undefined && { is_daily: Boolean(is_daily) }),
+  });
+
+  if (!updated) {
+    return res.status(404).json({ error: 'Challenge not found' });
+  }
+
+  if (test_cases && Array.isArray(test_cases)) {
+    db.setTestCasesForChallenge(id, test_cases);
+  }
+
+  return res.json({
+    challenge: updated,
+    test_cases: db.getTestCases(id),
+  });
+});
+
+apiRouter.delete('/admin/challenges/:id', requireAdmin, (req: Request, res: Response) => {
+  const { id } = req.params;
+  const deleted = db.deleteChallenge(id);
+  if (!deleted) {
+    return res.status(404).json({ error: 'Challenge not found' });
+  }
+  return res.json({ message: 'Challenge deleted successfully' });
+});
+
+apiRouter.get('/admin/stats', requireAdmin, (req: Request, res: Response) => {
+  const users = db.getUsers();
+  const challenges = db.getChallenges();
+  const submissions = db.getSubmissions();
+
+  const totalSubmissions = submissions.length;
+  const passedSubmissions = submissions.filter((s) => s.status === 'passed').length;
+  const passRate = totalSubmissions > 0 ? Math.round((passedSubmissions / totalSubmissions) * 100) : 0;
+
+  return res.json({
+    total_users: users.length,
+    total_challenges: challenges.length,
+    total_submissions: totalSubmissions,
+    pass_rate: passRate,
+    users: users.map((u) => {
+      const { password_hash, ...safe } = u;
+      return safe;
+    }),
+  });
+});

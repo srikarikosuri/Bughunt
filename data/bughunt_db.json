@@ -1,0 +1,1013 @@
+{
+  "users": [
+    {
+      "id": "usr-demo-1",
+      "email": "alex@bughunt.dev",
+      "password_hash": "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
+      "username": "AlexHunter",
+      "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&h=200&q=80",
+      "bio": "Bug squasher & full-stack tinkerer. Loving logic puzzles and binary trees!",
+      "preferred_language": "python",
+      "github_url": "https://github.com/alex-bughunter",
+      "role": "user",
+      "xp": 160,
+      "level": 3,
+      "streak": 4,
+      "last_active": "2026-09-28T07:01:14.441Z",
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "usr-admin-1",
+      "email": "admin@bughunt.dev",
+      "password_hash": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+      "username": "AdaLovelaceAdmin",
+      "avatar": "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&h=200&q=80",
+      "bio": "Lead Architect & Problem Author at BugHunt.",
+      "preferred_language": "c",
+      "github_url": "https://github.com/bughunt-official",
+      "role": "admin",
+      "xp": 350,
+      "level": 4,
+      "streak": 12,
+      "last_active": "2026-09-28T07:01:25.307Z",
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "usr-top-1",
+      "email": "cipher@bughunt.dev",
+      "password_hash": "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
+      "username": "ByteSlayer",
+      "avatar": "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=200&h=200&q=80",
+      "bio": "Aiming for the #1 spot on BugHunt leaderboard. Memory safety first!",
+      "preferred_language": "c",
+      "github_url": "https://github.com/byteslayer",
+      "role": "user",
+      "xp": 420,
+      "level": 5,
+      "streak": 18,
+      "last_active": "2026-09-28T07:00:47.869Z",
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "usr-top-2",
+      "email": "sarah@bughunt.dev",
+      "password_hash": "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
+      "username": "NovaCoder",
+      "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&h=200&q=80",
+      "bio": "React and Python enthusiast. Finding bugs before QA does.",
+      "preferred_language": "javascript",
+      "github_url": "https://github.com/novacoder",
+      "role": "user",
+      "xp": 290,
+      "level": 4,
+      "streak": 6,
+      "last_active": "2026-09-28T07:00:47.869Z",
+      "created_at": "2026-09-28T07:00:47.869Z"
+    }
+  ],
+  "challenges": [
+    {
+      "id": "ch-py-1",
+      "title": "Palindrome Syntax Glitch",
+      "slug": "python-palindrome-syntax-glitch",
+      "language": "python",
+      "difficulty": "easy",
+      "category": "syntax",
+      "xp_reward": 10,
+      "description": "A junior engineer attempted to write a simple palindrome checker in Python, but when trying to run it, the Python interpreter screams with syntax and indentation errors.\n\nFix the syntax errors (missing colons, improper lowercase conversion, and indentation) so that the function checks if a string is identical forwards and backwards (ignoring case).",
+      "broken_code": "def is_palindrome(text)\n    clean_text = text.lower()\n  reversed_text = clean_text[::-1]\n    if clean_text == reversed_text\n        return True\n    else\n        return False\n\n# Read input from standard input\nimport sys\nif __name__ == '__main__':\n    line = sys.stdin.read().strip()\n    if line:\n        print(is_palindrome(line))\n",
+      "correct_solution": "def is_palindrome(text):\n    clean_text = text.lower()\n    reversed_text = clean_text[::-1]\n    if clean_text == reversed_text:\n        return True\n    else:\n        return False\n\nimport sys\nif __name__ == '__main__':\n    line = sys.stdin.read().strip()\n    if line:\n        print(is_palindrome(line))\n",
+      "hints": [
+        "Look at function and conditional declarations in Python: each `def`, `if`, and `else` line must end with a colon `:`",
+        "Check indentation: all statements inside the function body must share the exact same indentation level (4 spaces)."
+      ],
+      "is_daily": true,
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ch-py-2",
+      "title": "Off-By-One Array Chunking",
+      "slug": "python-off-by-one-chunking",
+      "language": "python",
+      "difficulty": "easy",
+      "category": "logic",
+      "xp_reward": 10,
+      "description": "The function `chunk_list(nums, size)` is supposed to divide a list into contiguous sublists of length `size`. However, because of an off-by-one slicing index and step bug, elements are either being skipped or sliced incorrectly!\n\nFix the logic error in the range step so all elements are partitioned properly.",
+      "broken_code": "import sys\nimport json\n\ndef chunk_list(arr, size):\n    result = []\n    # BUG: Range step is size - 1, causing duplicate overlap!\n    for i in range(0, len(arr), size - 1):\n        result.append(arr[i:i + size])\n    return result\n\nif __name__ == '__main__':\n    raw = sys.stdin.read().strip()\n    if raw:\n        data = json.loads(raw)\n        arr = data['arr']\n        size = data['size']\n        print(json.dumps(chunk_list(arr, size)))\n",
+      "correct_solution": "import sys\nimport json\n\ndef chunk_list(arr, size):\n    result = []\n    for i in range(0, len(arr), size):\n        result.append(arr[i:i + size])\n    return result\n\nif __name__ == '__main__':\n    raw = sys.stdin.read().strip()\n    if raw:\n        data = json.loads(raw)\n        arr = data['arr']\n        size = data['size']\n        print(json.dumps(chunk_list(arr, size)))\n",
+      "hints": [
+        "Examine the 3rd argument in `range(0, len(arr), step)`. When moving to the next chunk of `size`, by how much should `i` increment?",
+        "If chunk size is 2, the index should advance by 2 each loop, not `size - 1`."
+      ],
+      "is_daily": false,
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ch-py-3",
+      "title": "Zero Division & Missing Key in Grade Average",
+      "slug": "python-grade-average-runtime-error",
+      "language": "python",
+      "difficulty": "medium",
+      "category": "runtime",
+      "xp_reward": 25,
+      "description": "A school grading service crashes whenever calculating grade averages for a student whose records contain an empty score array or missing grade keys. It raises `ZeroDivisionError` or `KeyError`.\n\nModify the function `calculate_average(student_record)` so that:\n- If scores list is empty or student has no valid numerical scores, return `0.0`.\n- Safely retrieve `'scores'` without triggering a KeyError.\n- Return the average rounded to 2 decimal places.",
+      "broken_code": "import sys\nimport json\n\ndef calculate_average(record):\n    # BUG: Direct dictionary indexing crashes if key missing,\n    # and dividing by len(scores) without checking 0 raises ZeroDivisionError!\n    scores = record['scores']\n    total = sum(scores)\n    average = total / len(scores)\n    return round(average, 2)\n\nif __name__ == '__main__':\n    raw = sys.stdin.read().strip()\n    if raw:\n        record = json.loads(raw)\n        print(calculate_average(record))\n",
+      "correct_solution": "import sys\nimport json\n\ndef calculate_average(record):\n    scores = record.get('scores', [])\n    if not scores:\n        return 0.0\n    total = sum(scores)\n    average = total / len(scores)\n    return round(average, 2)\n\nif __name__ == '__main__':\n    raw = sys.stdin.read().strip()\n    if raw:\n        record = json.loads(raw)\n        print(calculate_average(record))\n",
+      "hints": [
+        "Use `record.get(\"scores\", [])` to gracefully default when the \"scores\" key does not exist.",
+        "Check `if not scores:` before performing the division to guard against empty lists."
+      ],
+      "is_daily": false,
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ch-py-4",
+      "title": "Binary Search Infinite Loop",
+      "slug": "python-binary-search-infinite-loop",
+      "language": "python",
+      "difficulty": "medium",
+      "category": "algorithmic",
+      "xp_reward": 25,
+      "description": "Binary search is one of the most fundamental search algorithms with O(log n) time complexity. However, this implementation enters an infinite loop or returns the wrong index when searching for items!\n\nIdentify why `left` and `right` pointers fail to converge and fix the index adjustments so the function returns the 0-based index of `target`, or `-1` if not found.",
+      "broken_code": "import sys\nimport json\n\ndef binary_search(arr, target):\n    left = 0\n    right = len(arr) - 1\n    \n    while left <= right:\n        mid = (left + right) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            # BUG: Not advancing past mid!\n            left = mid\n        else:\n            # BUG: Not stepping back from mid!\n            right = mid\n            \n    return -1\n\nif __name__ == '__main__':\n    raw = sys.stdin.read().strip()\n    if raw:\n        data = json.loads(raw)\n        print(binary_search(data['arr'], data['target']))\n",
+      "correct_solution": "import sys\nimport json\n\ndef binary_search(arr, target):\n    left = 0\n    right = len(arr) - 1\n    \n    while left <= right:\n        mid = (left + right) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n            \n    return -1\n\nif __name__ == '__main__':\n    raw = sys.stdin.read().strip()\n    if raw:\n        data = json.loads(raw)\n        print(binary_search(data['arr'], data['target']))\n",
+      "hints": [
+        "When `arr[mid] < target`, we already know `arr[mid]` is not the target, so `left` should move to `mid + 1`.",
+        "Similarly, when `arr[mid] > target`, `right` should be set to `mid - 1`."
+      ],
+      "is_daily": false,
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ch-js-1",
+      "title": "Broken Currency Formatter Template",
+      "slug": "javascript-currency-formatter-syntax",
+      "language": "javascript",
+      "difficulty": "easy",
+      "category": "syntax",
+      "xp_reward": 10,
+      "description": "A front-end dev wrote a currency formatter function using modern ES6 arrow syntax and template literals. Unfortunately, unclosed curly braces and mismatched quotation marks prevent the JavaScript parser from even compiling!\n\nFix the syntax errors in `formatCurrency` so it formats amounts with currency symbol and 2 decimals (e.g., \"$12.50\").",
+      "broken_code": "function formatCurrency(amount, symbol = '$') {\n  // BUG: Mismatched quotes, unclosed arrow brackets and missing backtick\n  if (typeof amount !== 'number' || isNaN(amount)) {\n    return 'Invalid Amount';\n  }\n  const formatted = amount.toFixed(2);\n  return `${symbol}${formatted\";\n}\n\nconst readline = require('readline');\nconst rl = readline.createInterface({ input: process.stdin });\nlet input = '';\nrl.on('line', line => { input += line; });\nrl.on('close', () => {\n  if (input.trim()) {\n    const data = JSON.parse(input);\n    console.log(formatCurrency(data.amount, data.symbol));\n  }\n});\n",
+      "correct_solution": "function formatCurrency(amount, symbol = '$') {\n  if (typeof amount !== 'number' || isNaN(amount)) {\n    return 'Invalid Amount';\n  }\n  const formatted = amount.toFixed(2);\n  return `${symbol}${formatted}`;\n}\n\nconst readline = require('readline');\nconst rl = readline.createInterface({ input: process.stdin });\nlet input = '';\nrl.on('line', line => { input += line; });\nrl.on('close', () => {\n  if (input.trim()) {\n    const data = JSON.parse(input);\n    console.log(formatCurrency(data.amount, data.symbol));\n  }\n});\n",
+      "hints": [
+        "Check the template literal on line 7: Notice how backtick starts but ends with a double quote `\"` instead of a backtick ``.",
+        "Ensure the interpolation expression `${formatted}` has a closing curly brace `}`."
+      ],
+      "is_daily": false,
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ch-js-2",
+      "title": "Closure Loop Variable Capture",
+      "slug": "javascript-closure-loop-variable-capture",
+      "language": "javascript",
+      "difficulty": "easy",
+      "category": "logic",
+      "xp_reward": 10,
+      "description": "In JavaScript, function closures capturing a loop index declared with `var` share the same hoisted variable reference across all iterations. Because of this, every generated function returns the same final value!\n\nRefactor the loop or variable scoping so that each generated callback in the array returns its corresponding multiplier index.",
+      "broken_code": "function createMultipliers(n) {\n  var funcs = [];\n  // BUG: Using 'var' means 'i' is function-scoped and hoisted.\n  // By the time functions are called, 'i' equals 'n'.\n  for (var i = 0; i < n; i++) {\n    funcs.push(function(val) {\n      return val * i;\n    });\n  }\n  return funcs;\n}\n\nconst readline = require('readline');\nconst rl = readline.createInterface({ input: process.stdin });\nlet input = '';\nrl.on('line', line => { input += line; });\nrl.on('close', () => {\n  if (input.trim()) {\n    const data = JSON.parse(input);\n    const multipliers = createMultipliers(data.count);\n    const results = multipliers.map(fn => fn(data.multiplier));\n    console.log(JSON.stringify(results));\n  }\n});\n",
+      "correct_solution": "function createMultipliers(n) {\n  const funcs = [];\n  for (let i = 0; i < n; i++) {\n    funcs.push(function(val) {\n      return val * i;\n    });\n  }\n  return funcs;\n}\n\nconst readline = require('readline');\nconst rl = readline.createInterface({ input: process.stdin });\nlet input = '';\nrl.on('line', line => { input += line; });\nrl.on('close', () => {\n  if (input.trim()) {\n    const data = JSON.parse(input);\n    const multipliers = createMultipliers(data.count);\n    const results = multipliers.map(fn => fn(data.multiplier));\n    console.log(JSON.stringify(results));\n  }\n});\n",
+      "hints": [
+        "In ES6+, replace `var i = 0` with `let i = 0` to create a fresh block scope for every iteration of the loop.",
+        "Alternatively, use an immediately invoked function expression (IIFE), but `let` is the standard modern fix."
+      ],
+      "is_daily": false,
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ch-js-3",
+      "title": "Cannot Read Properties of Undefined",
+      "slug": "javascript-deep-object-property-access",
+      "language": "javascript",
+      "difficulty": "medium",
+      "category": "runtime",
+      "xp_reward": 25,
+      "description": "A common runtime crash in JavaScript occurs when navigating nested properties of an object where an intermediate key is `null` or `undefined`:\n`TypeError: Cannot read properties of undefined (reading 'country')`.\n\nImplement or fix `getUserCountryCode(user)` to safely extract `user.profile.address.country.code`. If any level in the hierarchy is missing, return `\"UNKNOWN\"`.",
+      "broken_code": "function getUserCountryCode(user) {\n  // BUG: Direct property chains throw TypeError if profile, address, or country is null/undefined!\n  return user.profile.address.country.code.toUpperCase();\n}\n\nconst readline = require('readline');\nconst rl = readline.createInterface({ input: process.stdin });\nlet input = '';\nrl.on('line', line => { input += line; });\nrl.on('close', () => {\n  if (input.trim()) {\n    const user = JSON.parse(input);\n    console.log(getUserCountryCode(user));\n  }\n});\n",
+      "correct_solution": "function getUserCountryCode(user) {\n  const code = user?.profile?.address?.country?.code;\n  return code ? code.toUpperCase() : \"UNKNOWN\";\n}\n\nconst readline = require('readline');\nconst rl = readline.createInterface({ input: process.stdin });\nlet input = '';\nrl.on('line', line => { input += line; });\nrl.on('close', () => {\n  if (input.trim()) {\n    const user = JSON.parse(input);\n    console.log(getUserCountryCode(user));\n  }\n});\n",
+      "hints": [
+        "Use optional chaining `?.` introduced in ECMAScript 2020: `user?.profile?.address?.country?.code`.",
+        "Return `\"UNKNOWN\"` if the resulting code is undefined or empty string."
+      ],
+      "is_daily": false,
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ch-js-4",
+      "title": "Two Sum Duplicate Value Bug",
+      "slug": "javascript-two-sum-duplicate-bug",
+      "language": "javascript",
+      "difficulty": "medium",
+      "category": "algorithmic",
+      "xp_reward": 25,
+      "description": "Given an array of integers `nums` and an integer `target`, find the indices of the two numbers such that they add up to `target`.\n\nThe buggy code populates a hash map before checking, causing duplicate numbers (like `[3, 3]` with target `6`) to overwrite each other's indices or match the same element with itself!\n\nFix the algorithm so it returns `[i, j]` in ascending order, or `[]` if no pair exists.",
+      "broken_code": "function twoSum(nums, target) {\n  const map = {};\n  // BUG: Storing all elements first causes duplicate keys to overwrite,\n  // and checking later can match the same element twice!\n  for (let i = 0; i < nums.length; i++) {\n    map[nums[i]] = i;\n  }\n\n  for (let i = 0; i < nums.length; i++) {\n    const complement = target - nums[i];\n    if (map[complement]) {\n      return [i, map[complement]];\n    }\n  }\n  return [];\n}\n\nconst readline = require('readline');\nconst rl = readline.createInterface({ input: process.stdin });\nlet input = '';\nrl.on('line', line => { input += line; });\nrl.on('close', () => {\n  if (input.trim()) {\n    const data = JSON.parse(input);\n    console.log(JSON.stringify(twoSum(data.nums, data.target)));\n  }\n});\n",
+      "correct_solution": "function twoSum(nums, target) {\n  const map = new Map();\n  for (let i = 0; i < nums.length; i++) {\n    const complement = target - nums[i];\n    if (map.has(complement)) {\n      return [map.get(complement), i];\n    }\n    map.set(nums[i], i);\n  }\n  return [];\n}\n\nconst readline = require('readline');\nconst rl = readline.createInterface({ input: process.stdin });\nlet input = '';\nrl.on('line', line => { input += line; });\nrl.on('close', () => {\n  if (input.trim()) {\n    const data = JSON.parse(input);\n    console.log(JSON.stringify(twoSum(data.nums, data.target)));\n  }\n});\n",
+      "hints": [
+        "Single-pass hash table: Check if `complement` exists in the map BEFORE adding the current element `nums[i]`.",
+        "Remember that index 0 is falsy in JavaScript (`if (map[complement])` fails when index is 0!). Use `map.has()` or `complement in map`."
+      ],
+      "is_daily": false,
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ch-java-1",
+      "title": "Temperature Converter Type Cast & Semicolon",
+      "slug": "java-temperature-converter-syntax",
+      "language": "java",
+      "difficulty": "easy",
+      "category": "syntax",
+      "xp_reward": 10,
+      "description": "In Java, every statement must terminate with a semicolon, and integer division truncates decimal values. The developer trying to implement Celsius to Fahrenheit converter `F = (C * 9 / 5) + 32` missed punctuation and introduced integer truncation!\n\nFix the compiler errors and integer division so `toFahrenheit(celsius)` returns a double rounded to 1 decimal place.",
+      "broken_code": "import java.util.Scanner;\n\npublic class Solution {\n    public static double toFahrenheit(double celsius) {\n        // BUG: Missing semicolon and integer division (9/5 truncates to 1)\n        double f = (celsius * 9 / 5) + 32\n        return Math.round(f * 10.0) / 10.0;\n    }\n\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        if (scanner.hasNextDouble()) {\n            double c = scanner.nextDouble();\n            System.out.println(toFahrenheit(c));\n        }\n        scanner.close();\n    }\n}\n",
+      "correct_solution": "import java.util.Scanner;\n\npublic class Solution {\n    public static double toFahrenheit(double celsius) {\n        double f = (celsius * 9.0 / 5.0) + 32.0;\n        return Math.round(f * 10.0) / 10.0;\n    }\n\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        if (scanner.hasNextDouble()) {\n            double c = scanner.nextDouble();\n            System.out.println(toFahrenheit(c));\n        }\n        scanner.close();\n    }\n}\n",
+      "hints": [
+        "Notice line 6 lacks a semicolon `;` at the end of the variable assignment.",
+        "Use `9.0 / 5.0` instead of integer `9 / 5` to prevent truncation in floating-point operations."
+      ],
+      "is_daily": false,
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ch-java-2",
+      "title": "String Reference Equality vs .equals()",
+      "slug": "java-string-equality-bug",
+      "language": "java",
+      "difficulty": "medium",
+      "category": "logic",
+      "xp_reward": 25,
+      "description": "A security gate in a Java authentication microservice is failing users because it compares dynamic string tokens using reference equality `==` rather than value equality `.equals()`.\n\nIn Java, `==` checks if both references point to the exact same memory address on the heap, not whether their contents match! Fix the logic.",
+      "broken_code": "import java.util.Scanner;\n\npublic class Solution {\n    public static boolean validateToken(String receivedToken, String expectedSecret) {\n        if (receivedToken == null || expectedSecret == null) {\n            return false;\n        }\n        // BUG: In Java, '==' compares memory references, not string characters!\n        return receivedToken == expectedSecret;\n    }\n\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        if (scanner.hasNext()) {\n            String token = scanner.next();\n            // Expected hardcoded secret\n            String secret = new String(\"BUGHUNT_SECRET_2026\");\n            System.out.println(validateToken(token, secret));\n        }\n        scanner.close();\n    }\n}\n",
+      "correct_solution": "import java.util.Scanner;\n\npublic class Solution {\n    public static boolean validateToken(String receivedToken, String expectedSecret) {\n        if (receivedToken == null || expectedSecret == null) {\n            return false;\n        }\n        return receivedToken.equals(expectedSecret);\n    }\n\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        if (scanner.hasNext()) {\n            String token = scanner.next();\n            String secret = new String(\"BUGHUNT_SECRET_2026\");\n            System.out.println(validateToken(token, secret));\n        }\n        scanner.close();\n    }\n}\n",
+      "hints": [
+        "Replace the `==` comparison with `receivedToken.equals(expectedSecret)`.",
+        "String objects instantiated at runtime reside at different memory addresses, so `.equals()` must be used to compare contents."
+      ],
+      "is_daily": false,
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ch-java-3",
+      "title": "ArrayIndexOutOfBounds in In-Place Array Reversal",
+      "slug": "java-array-out-of-bounds-reversal",
+      "language": "java",
+      "difficulty": "medium",
+      "category": "runtime",
+      "xp_reward": 25,
+      "description": "The developer implemented an in-place array reversal method `reverseArray(int[] arr)`.\nHowever, running it immediately throws `java.lang.ArrayIndexOutOfBoundsException` because the loop index bounds are wrong, and elements are swapped back to their original position!\n\nFix the array indexing and loop condition so the array is reversed correctly.",
+      "broken_code": "import java.util.Scanner;\nimport java.util.Arrays;\n\npublic class Solution {\n    public static void reverseArray(int[] arr) {\n        // BUG: i <= arr.length accesses arr[arr.length], causing ArrayIndexOutOfBoundsException!\n        // Also looping until length causes elements to be swapped twice.\n        for (int i = 0; i <= arr.length; i++) {\n            int temp = arr[i];\n            arr[i] = arr[arr.length - i];\n            arr[arr.length - i] = temp;\n        }\n    }\n\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        if (scanner.hasNextInt()) {\n            int n = scanner.nextInt();\n            int[] arr = new int[n];\n            for (int i = 0; i < n; i++) {\n                arr[i] = scanner.nextInt();\n            }\n            reverseArray(arr);\n            System.out.println(Arrays.toString(arr));\n        }\n        scanner.close();\n    }\n}\n",
+      "correct_solution": "import java.util.Scanner;\nimport java.util.Arrays;\n\npublic class Solution {\n    public static void reverseArray(int[] arr) {\n        for (int i = 0; i < arr.length / 2; i++) {\n            int opposite = arr.length - 1 - i;\n            int temp = arr[i];\n            arr[i] = arr[opposite];\n            arr[opposite] = temp;\n        }\n    }\n\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        if (scanner.hasNextInt()) {\n            int n = scanner.nextInt();\n            int[] arr = new int[n];\n            for (int i = 0; i < n; i++) {\n                arr[i] = scanner.nextInt();\n            }\n            reverseArray(arr);\n            System.out.println(Arrays.toString(arr));\n        }\n        scanner.close();\n    }\n}\n",
+      "hints": [
+        "The last element index in Java is `arr.length - 1`. Accessing `arr[arr.length]` will crash.",
+        "Only loop halfway (`i < arr.length / 2`), otherwise you swap the items twice, leaving them in their original order."
+      ],
+      "is_daily": false,
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ch-java-4",
+      "title": "Missing Base Case & Recursion Stack Overflow",
+      "slug": "java-recursion-stack-overflow",
+      "language": "java",
+      "difficulty": "hard",
+      "category": "algorithmic",
+      "xp_reward": 50,
+      "description": "A recursive Fibonacci generator throws `java.lang.StackOverflowError` on non-trivial inputs because negative inputs are not guarded against and the base case is incomplete.\n\nImplement an efficient Fibonacci algorithm or fix the recursion with proper memoization/iteration so it computes `fib(n)` for $n \\in [0, 50]$ in O(n) time.",
+      "broken_code": "import java.util.Scanner;\n\npublic class Solution {\n    // BUG: Missing base case for n <= 0, causing infinite recursive depth & StackOverflowError\n    public static long fib(int n) {\n        if (n == 1) return 1;\n        return fib(n - 1) + fib(n - 2);\n    }\n\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        if (scanner.hasNextInt()) {\n            int n = scanner.nextInt();\n            System.out.println(fib(n));\n        }\n        scanner.close();\n    }\n}\n",
+      "correct_solution": "import java.util.Scanner;\n\npublic class Solution {\n    public static long fib(int n) {\n        if (n <= 0) return 0;\n        if (n == 1) return 1;\n        long a = 0;\n        long b = 1;\n        for (int i = 2; i <= n; i++) {\n            long temp = a + b;\n            a = b;\n            b = temp;\n        }\n        return b;\n    }\n\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        if (scanner.hasNextInt()) {\n            int n = scanner.nextInt();\n            System.out.println(fib(n));\n        }\n        scanner.close();\n    }\n}\n",
+      "hints": [
+        "Check `if (n <= 0) return 0;` and `if (n == 1) return 1;`.",
+        "For inputs like n = 45, exponential O(2^n) recursion will time out! Use an iterative approach with two variables (`a` and `b`) to achieve O(n) performance."
+      ],
+      "is_daily": false,
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ch-c-1",
+      "title": "Factorial Format Specifier & Header Mismatch",
+      "slug": "c-factorial-syntax-format-mismatch",
+      "language": "c",
+      "difficulty": "easy",
+      "category": "syntax",
+      "xp_reward": 10,
+      "description": "In C, missing essential standard library headers leads to implicit declaration warnings or errors, and format specifiers in `printf` must match the variable type.\n\nFix the syntax errors, missing header, and printf format specifier so the program computes and prints the factorial of an integer.",
+      "broken_code": "// BUG: Missing <stdio.h> header\nint factorial(int n) {\n    if (n <= 1) {\n        return 1;\n    }\n    return n * factorial(n - 1);\n}\n\nint main() {\n    int n;\n    // BUG: Missing address-of '&' operator in scanf, and wrong specifier\n    scanf(\"%d\", n);\n    int res = factorial(n);\n    printf(\"%s\n\", res);\n    return 0;\n}\n",
+      "correct_solution": "#include <stdio.h>\n\nint factorial(int n) {\n    if (n <= 1) {\n        return 1;\n    }\n    return n * factorial(n - 1);\n}\n\nint main() {\n    int n;\n    if (scanf(\"%d\", &n) == 1) {\n        int res = factorial(n);\n        printf(\"%d\n\", res);\n    }\n    return 0;\n}\n",
+      "hints": [
+        "Include `#include <stdio.h>` at the very top of the file for `scanf` and `printf`.",
+        "`scanf(\"%d\", &n)` requires the address operator `&` before `n`.",
+        "In `printf`, use `%d` for integers, not `%s` which expects a null-terminated string pointer."
+      ],
+      "is_daily": false,
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ch-c-2",
+      "title": "Off-by-One Null Terminator in String Reverse",
+      "slug": "c-string-reverse-null-terminator-bug",
+      "language": "c",
+      "difficulty": "medium",
+      "category": "logic",
+      "xp_reward": 25,
+      "description": "In C, strings are null-terminated character arrays (`'\\0'`). The following function attempts to reverse a string in-place, but swaps the null terminator into the front or middle of the string, causing truncation or garbage memory reads!\n\nFix the string reversal logic so that `str` is reversed properly while maintaining the null terminator at its original position.",
+      "broken_code": "#include <stdio.h>\n#include <string.h>\n\nvoid reverse_string(char* str) {\n    int len = strlen(str);\n    // BUG: Swapping from 'len' includes the '\\0' null terminator,\n    // corrupting the string!\n    for (int i = 0; i < len / 2; i++) {\n        char temp = str[i];\n        str[i] = str[len - i];\n        str[len - i] = temp;\n    }\n}\n\nint main() {\n    char buffer[256];\n    if (fgets(buffer, sizeof(buffer), stdin)) {\n        // Strip newline\n        buffer[strcspn(buffer, \"\r\n\")] = 0;\n        reverse_string(buffer);\n        printf(\"%s\n\", buffer);\n    }\n    return 0;\n}\n",
+      "correct_solution": "#include <stdio.h>\n#include <string.h>\n\nvoid reverse_string(char* str) {\n    int len = strlen(str);\n    for (int i = 0; i < len / 2; i++) {\n        int opposite = len - 1 - i;\n        char temp = str[i];\n        str[i] = str[opposite];\n        str[opposite] = temp;\n    }\n}\n\nint main() {\n    char buffer[256];\n    if (fgets(buffer, sizeof(buffer), stdin)) {\n        buffer[strcspn(buffer, \"\r\n\")] = 0;\n        reverse_string(buffer);\n        printf(\"%s\n\", buffer);\n    }\n    return 0;\n}\n",
+      "hints": [
+        "The index of the last printable character before the null terminator is `len - 1`, not `len`.",
+        "The opposite index should be `len - 1 - i`."
+      ],
+      "is_daily": false,
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ch-c-3",
+      "title": "Sorted Array Merge Pointer Arithmetic Bug",
+      "slug": "c-sorted-array-merge-pointer-bug",
+      "language": "c",
+      "difficulty": "hard",
+      "category": "algorithmic",
+      "xp_reward": 50,
+      "description": "Merging two sorted arrays into a new sorted array is an essential sub-routine in merge sort.\nThis C implementation contains a pointer arithmetic and index boundary bug where the remaining elements from the second array are completely ignored or overrun!\n\nFix the merge function so that `merged` contains all elements from `a` and `b` in ascending order.",
+      "broken_code": "#include <stdio.h>\n#include <stdlib.h>\n\nvoid merge_sorted(int* a, int n, int* b, int m, int* out) {\n    int i = 0, j = 0, k = 0;\n    while (i < n && j < m) {\n        if (a[i] <= b[j]) {\n            out[k++] = a[i++];\n        } else {\n            out[k++] = b[j++];\n        }\n    }\n    // BUG: Missing the loop to drain remaining elements from array b!\n    while (i < n) {\n        out[k++] = a[i++];\n    }\n}\n\nint main() {\n    int n, m;\n    if (scanf(\"%d %d\", &n, &m) == 2) {\n        int a[100], b[100], out[200];\n        for (int i = 0; i < n; i++) scanf(\"%d\", &a[i]);\n        for (int j = 0; j < m; j++) scanf(\"%d\", &b[j]);\n        merge_sorted(a, n, b, m, out);\n        for (int k = 0; k < n + m; k++) {\n            printf(\"%d%s\", out[k], (k == n + m - 1) ? \"\" : \" \");\n        }\n        printf(\"\n\");\n    }\n    return 0;\n}\n",
+      "correct_solution": "#include <stdio.h>\n#include <stdlib.h>\n\nvoid merge_sorted(int* a, int n, int* b, int m, int* out) {\n    int i = 0, j = 0, k = 0;\n    while (i < n && j < m) {\n        if (a[i] <= b[j]) {\n            out[k++] = a[i++];\n        } else {\n            out[k++] = b[j++];\n        }\n    }\n    while (i < n) {\n        out[k++] = a[i++];\n    }\n    while (j < m) {\n        out[k++] = b[j++];\n    }\n}\n\nint main() {\n    int n, m;\n    if (scanf(\"%d %d\", &n, &m) == 2) {\n        int a[100], b[100], out[200];\n        for (int i = 0; i < n; i++) scanf(\"%d\", &a[i]);\n        for (int j = 0; j < m; j++) scanf(\"%d\", &b[j]);\n        merge_sorted(a, n, b, m, out);\n        for (int k = 0; k < n + m; k++) {\n            printf(\"%d%s\", out[k], (k == n + m - 1) ? \"\" : \" \");\n        }\n        printf(\"\n\");\n    }\n    return 0;\n}\n",
+      "hints": [
+        "Remember that when the first `while (i < n && j < m)` finishes, either array `a` OR array `b` may still have remaining items.",
+        "Add `while (j < m) { out[k++] = b[j++]; }` after the loop for `a`."
+      ],
+      "is_daily": false,
+      "created_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ch-py-5",
+      "title": "Valid Parentheses Stack Underflow",
+      "slug": "python-valid-parentheses-stack-underflow",
+      "language": "python",
+      "difficulty": "hard",
+      "category": "algorithmic",
+      "xp_reward": 50,
+      "description": "Given a string containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.\nAn input string is valid if open brackets are closed by the same type of brackets in the correct order.\n\nThe broken implementation crashes with `IndexError: pop from empty list` whenever a closing bracket appears before an opening bracket, and fails to check if unclosed brackets remain on the stack at the end!",
+      "broken_code": "import sys\n\ndef is_valid_parentheses(s: str) -> bool:\n    stack = []\n    mapping = {')': '(', '}': '{', ']': '['}\n    \n    for char in s:\n        if char in mapping:\n            # BUG: Pops without checking if stack is empty, causing IndexError!\n            top = stack.pop()\n            if mapping[char] != top:\n                return False\n        else:\n            stack.append(char)\n            \n    # BUG: Returns True even if there are unclosed brackets left on the stack!\n    return True\n\nif __name__ == '__main__':\n    raw = sys.stdin.read().strip()\n    print(is_valid_parentheses(raw))\n",
+      "correct_solution": "import sys\n\ndef is_valid_parentheses(s: str) -> bool:\n    stack = []\n    mapping = {')': '(', '}': '{', ']': '['}\n    \n    for char in s:\n        if char in mapping:\n            if not stack:\n                return False\n            top = stack.pop()\n            if mapping[char] != top:\n                return False\n        else:\n            stack.append(char)\n            \n    return len(stack) == 0\n\nif __name__ == '__main__':\n    raw = sys.stdin.read().strip()\n    print(is_valid_parentheses(raw))\n",
+      "hints": [
+        "Before calling `stack.pop()`, check `if not stack: return False` to prevent an IndexError when seeing an unexpected closing bracket.",
+        "At the end of processing the string, return `len(stack) == 0` instead of unconditionally returning `True`."
+      ],
+      "is_daily": false,
+      "created_at": "2026-09-28T07:00:47.869Z"
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "tc-py-1-1",
+      "challenge_id": "ch-py-1",
+      "input": "racecar",
+      "expected_output": "True",
+      "is_hidden": false,
+      "order_num": 1
+    },
+    {
+      "id": "tc-py-1-2",
+      "challenge_id": "ch-py-1",
+      "input": "Madam",
+      "expected_output": "True",
+      "is_hidden": false,
+      "order_num": 2
+    },
+    {
+      "id": "tc-py-1-3",
+      "challenge_id": "ch-py-1",
+      "input": "bughunt",
+      "expected_output": "False",
+      "is_hidden": true,
+      "order_num": 3
+    },
+    {
+      "id": "tc-py-1-4",
+      "challenge_id": "ch-py-1",
+      "input": "Level",
+      "expected_output": "True",
+      "is_hidden": true,
+      "order_num": 4
+    },
+    {
+      "id": "tc-py-2-1",
+      "challenge_id": "ch-py-2",
+      "input": "{\"arr\": [1, 2, 3, 4, 5], \"size\": 2}",
+      "expected_output": "[[1, 2], [3, 4], [5]]",
+      "is_hidden": false,
+      "order_num": 1
+    },
+    {
+      "id": "tc-py-2-2",
+      "challenge_id": "ch-py-2",
+      "input": "{\"arr\": [10, 20, 30], \"size\": 3}",
+      "expected_output": "[[10, 20, 30]]",
+      "is_hidden": false,
+      "order_num": 2
+    },
+    {
+      "id": "tc-py-2-3",
+      "challenge_id": "ch-py-2",
+      "input": "{\"arr\": [1, 2, 3, 4, 5, 6, 7], \"size\": 3}",
+      "expected_output": "[[1, 2, 3], [4, 5, 6], [7]]",
+      "is_hidden": true,
+      "order_num": 3
+    },
+    {
+      "id": "tc-py-2-4",
+      "challenge_id": "ch-py-2",
+      "input": "{\"arr\": [], \"size\": 2}",
+      "expected_output": "[]",
+      "is_hidden": true,
+      "order_num": 4
+    },
+    {
+      "id": "tc-py-3-1",
+      "challenge_id": "ch-py-3",
+      "input": "{\"name\": \"Alice\", \"scores\": [90, 85, 95]}",
+      "expected_output": "90.0",
+      "is_hidden": false,
+      "order_num": 1
+    },
+    {
+      "id": "tc-py-3-2",
+      "challenge_id": "ch-py-3",
+      "input": "{\"name\": \"Bob\", \"scores\": []}",
+      "expected_output": "0.0",
+      "is_hidden": false,
+      "order_num": 2
+    },
+    {
+      "id": "tc-py-3-3",
+      "challenge_id": "ch-py-3",
+      "input": "{\"name\": \"Charlie\"}",
+      "expected_output": "0.0",
+      "is_hidden": true,
+      "order_num": 3
+    },
+    {
+      "id": "tc-py-3-4",
+      "challenge_id": "ch-py-3",
+      "input": "{\"name\": \"Dave\", \"scores\": [73, 84, 91, 68]}",
+      "expected_output": "79.0",
+      "is_hidden": true,
+      "order_num": 4
+    },
+    {
+      "id": "tc-py-4-1",
+      "challenge_id": "ch-py-4",
+      "input": "{\"arr\": [1, 3, 5, 7, 9, 11], \"target\": 7}",
+      "expected_output": "3",
+      "is_hidden": false,
+      "order_num": 1
+    },
+    {
+      "id": "tc-py-4-2",
+      "challenge_id": "ch-py-4",
+      "input": "{\"arr\": [2, 4, 6, 8, 10], \"target\": 5}",
+      "expected_output": "-1",
+      "is_hidden": false,
+      "order_num": 2
+    },
+    {
+      "id": "tc-py-4-3",
+      "challenge_id": "ch-py-4",
+      "input": "{\"arr\": [10, 20, 30, 40], \"target\": 10}",
+      "expected_output": "0",
+      "is_hidden": true,
+      "order_num": 3
+    },
+    {
+      "id": "tc-py-4-4",
+      "challenge_id": "ch-py-4",
+      "input": "{\"arr\": [10, 20, 30, 40], \"target\": 40}",
+      "expected_output": "3",
+      "is_hidden": true,
+      "order_num": 4
+    },
+    {
+      "id": "tc-js-1-1",
+      "challenge_id": "ch-js-1",
+      "input": "{\"amount\": 12.5, \"symbol\": \"$\"}",
+      "expected_output": "$12.50",
+      "is_hidden": false,
+      "order_num": 1
+    },
+    {
+      "id": "tc-js-1-2",
+      "challenge_id": "ch-js-1",
+      "input": "{\"amount\": 0, \"symbol\": \"€\"}",
+      "expected_output": "€0.00",
+      "is_hidden": false,
+      "order_num": 2
+    },
+    {
+      "id": "tc-js-1-3",
+      "challenge_id": "ch-js-1",
+      "input": "{\"amount\": 99.999, \"symbol\": \"£\"}",
+      "expected_output": "£100.00",
+      "is_hidden": true,
+      "order_num": 3
+    },
+    {
+      "id": "tc-js-1-4",
+      "challenge_id": "ch-js-1",
+      "input": "{\"amount\": \"abc\", \"symbol\": \"$\"}",
+      "expected_output": "Invalid Amount",
+      "is_hidden": true,
+      "order_num": 4
+    },
+    {
+      "id": "tc-js-2-1",
+      "challenge_id": "ch-js-2",
+      "input": "{\"count\": 3, \"multiplier\": 5}",
+      "expected_output": "[0,5,10]",
+      "is_hidden": false,
+      "order_num": 1
+    },
+    {
+      "id": "tc-js-2-2",
+      "challenge_id": "ch-js-2",
+      "input": "{\"count\": 4, \"multiplier\": 2}",
+      "expected_output": "[0,2,4,6]",
+      "is_hidden": false,
+      "order_num": 2
+    },
+    {
+      "id": "tc-js-2-3",
+      "challenge_id": "ch-js-2",
+      "input": "{\"count\": 1, \"multiplier\": 10}",
+      "expected_output": "[0]",
+      "is_hidden": true,
+      "order_num": 3
+    },
+    {
+      "id": "tc-js-3-1",
+      "challenge_id": "ch-js-3",
+      "input": "{\"profile\": {\"address\": {\"country\": {\"code\": \"us\"}}}}",
+      "expected_output": "US",
+      "is_hidden": false,
+      "order_num": 1
+    },
+    {
+      "id": "tc-js-3-2",
+      "challenge_id": "ch-js-3",
+      "input": "{\"profile\": {}}",
+      "expected_output": "UNKNOWN",
+      "is_hidden": false,
+      "order_num": 2
+    },
+    {
+      "id": "tc-js-3-3",
+      "challenge_id": "ch-js-3",
+      "input": "{}",
+      "expected_output": "UNKNOWN",
+      "is_hidden": true,
+      "order_num": 3
+    },
+    {
+      "id": "tc-js-3-4",
+      "challenge_id": "ch-js-3",
+      "input": "{\"profile\": {\"address\": {\"country\": {\"code\": \"jp\"}}}}",
+      "expected_output": "JP",
+      "is_hidden": true,
+      "order_num": 4
+    },
+    {
+      "id": "tc-js-4-1",
+      "challenge_id": "ch-js-4",
+      "input": "{\"nums\": [2, 7, 11, 15], \"target\": 9}",
+      "expected_output": "[0,1]",
+      "is_hidden": false,
+      "order_num": 1
+    },
+    {
+      "id": "tc-js-4-2",
+      "challenge_id": "ch-js-4",
+      "input": "{\"nums\": [3, 2, 4], \"target\": 6}",
+      "expected_output": "[1,2]",
+      "is_hidden": false,
+      "order_num": 2
+    },
+    {
+      "id": "tc-js-4-3",
+      "challenge_id": "ch-js-4",
+      "input": "{\"nums\": [3, 3], \"target\": 6}",
+      "expected_output": "[0,1]",
+      "is_hidden": true,
+      "order_num": 3
+    },
+    {
+      "id": "tc-js-4-4",
+      "challenge_id": "ch-js-4",
+      "input": "{\"nums\": [1, 2, 3], \"target\": 10}",
+      "expected_output": "[]",
+      "is_hidden": true,
+      "order_num": 4
+    },
+    {
+      "id": "tc-java-1-1",
+      "challenge_id": "ch-java-1",
+      "input": "0.0",
+      "expected_output": "32.0",
+      "is_hidden": false,
+      "order_num": 1
+    },
+    {
+      "id": "tc-java-1-2",
+      "challenge_id": "ch-java-1",
+      "input": "100.0",
+      "expected_output": "212.0",
+      "is_hidden": false,
+      "order_num": 2
+    },
+    {
+      "id": "tc-java-1-3",
+      "challenge_id": "ch-java-1",
+      "input": "37.0",
+      "expected_output": "98.6",
+      "is_hidden": true,
+      "order_num": 3
+    },
+    {
+      "id": "tc-java-2-1",
+      "challenge_id": "ch-java-2",
+      "input": "BUGHUNT_SECRET_2026",
+      "expected_output": "true",
+      "is_hidden": false,
+      "order_num": 1
+    },
+    {
+      "id": "tc-java-2-2",
+      "challenge_id": "ch-java-2",
+      "input": "WRONG_SECRET",
+      "expected_output": "false",
+      "is_hidden": false,
+      "order_num": 2
+    },
+    {
+      "id": "tc-java-2-3",
+      "challenge_id": "ch-java-2",
+      "input": "bughunt_secret_2026",
+      "expected_output": "false",
+      "is_hidden": true,
+      "order_num": 3
+    },
+    {
+      "id": "tc-java-3-1",
+      "challenge_id": "ch-java-3",
+      "input": "4 1 2 3 4",
+      "expected_output": "[4, 3, 2, 1]",
+      "is_hidden": false,
+      "order_num": 1
+    },
+    {
+      "id": "tc-java-3-2",
+      "challenge_id": "ch-java-3",
+      "input": "5 10 20 30 40 50",
+      "expected_output": "[50, 40, 30, 20, 10]",
+      "is_hidden": false,
+      "order_num": 2
+    },
+    {
+      "id": "tc-java-3-3",
+      "challenge_id": "ch-java-3",
+      "input": "1 99",
+      "expected_output": "[99]",
+      "is_hidden": true,
+      "order_num": 3
+    },
+    {
+      "id": "tc-java-4-1",
+      "challenge_id": "ch-java-4",
+      "input": "0",
+      "expected_output": "0",
+      "is_hidden": false,
+      "order_num": 1
+    },
+    {
+      "id": "tc-java-4-2",
+      "challenge_id": "ch-java-4",
+      "input": "7",
+      "expected_output": "13",
+      "is_hidden": false,
+      "order_num": 2
+    },
+    {
+      "id": "tc-java-4-3",
+      "challenge_id": "ch-java-4",
+      "input": "10",
+      "expected_output": "55",
+      "is_hidden": true,
+      "order_num": 3
+    },
+    {
+      "id": "tc-java-4-4",
+      "challenge_id": "ch-java-4",
+      "input": "30",
+      "expected_output": "832040",
+      "is_hidden": true,
+      "order_num": 4
+    },
+    {
+      "id": "tc-c-1-1",
+      "challenge_id": "ch-c-1",
+      "input": "5",
+      "expected_output": "120",
+      "is_hidden": false,
+      "order_num": 1
+    },
+    {
+      "id": "tc-c-1-2",
+      "challenge_id": "ch-c-1",
+      "input": "1",
+      "expected_output": "1",
+      "is_hidden": false,
+      "order_num": 2
+    },
+    {
+      "id": "tc-c-1-3",
+      "challenge_id": "ch-c-1",
+      "input": "6",
+      "expected_output": "720",
+      "is_hidden": true,
+      "order_num": 3
+    },
+    {
+      "id": "tc-c-2-1",
+      "challenge_id": "ch-c-2",
+      "input": "hello",
+      "expected_output": "olleh",
+      "is_hidden": false,
+      "order_num": 1
+    },
+    {
+      "id": "tc-c-2-2",
+      "challenge_id": "ch-c-2",
+      "input": "BugHunt",
+      "expected_output": "tnuHguB",
+      "is_hidden": false,
+      "order_num": 2
+    },
+    {
+      "id": "tc-c-2-3",
+      "challenge_id": "ch-c-2",
+      "input": "a",
+      "expected_output": "a",
+      "is_hidden": true,
+      "order_num": 3
+    },
+    {
+      "id": "tc-c-3-1",
+      "challenge_id": "ch-c-3",
+      "input": "3 3 1 3 5 2 4 6",
+      "expected_output": "1 2 3 4 5 6",
+      "is_hidden": false,
+      "order_num": 1
+    },
+    {
+      "id": "tc-c-3-2",
+      "challenge_id": "ch-c-3",
+      "input": "2 1 10 20 15",
+      "expected_output": "10 15 20",
+      "is_hidden": false,
+      "order_num": 2
+    },
+    {
+      "id": "tc-c-3-3",
+      "challenge_id": "ch-c-3",
+      "input": "1 2 5 1 2",
+      "expected_output": "1 2 5",
+      "is_hidden": true,
+      "order_num": 3
+    },
+    {
+      "id": "tc-py-5-1",
+      "challenge_id": "ch-py-5",
+      "input": "()[]{}",
+      "expected_output": "True",
+      "is_hidden": false,
+      "order_num": 1
+    },
+    {
+      "id": "tc-py-5-2",
+      "challenge_id": "ch-py-5",
+      "input": "(]",
+      "expected_output": "False",
+      "is_hidden": false,
+      "order_num": 2
+    },
+    {
+      "id": "tc-py-5-3",
+      "challenge_id": "ch-py-5",
+      "input": "([{}])",
+      "expected_output": "True",
+      "is_hidden": true,
+      "order_num": 3
+    },
+    {
+      "id": "tc-py-5-4",
+      "challenge_id": "ch-py-5",
+      "input": "((()",
+      "expected_output": "False",
+      "is_hidden": true,
+      "order_num": 4
+    },
+    {
+      "id": "tc-py-5-5",
+      "challenge_id": "ch-py-5",
+      "input": "]",
+      "expected_output": "False",
+      "is_hidden": true,
+      "order_num": 5
+    }
+  ],
+  "submissions": [
+    {
+      "id": "sub-demo-1",
+      "user_id": "usr-demo-1",
+      "challenge_id": "ch-py-1",
+      "code": "def is_palindrome(text):\n    clean_text = text.lower()\n    reversed_text = clean_text[::-1]\n    if clean_text == reversed_text:\n        return True\n    else:\n        return False\n\nimport sys\nif __name__ == '__main__':\n    line = sys.stdin.read().strip()\n    if line:\n        print(is_palindrome(line))\n",
+      "language": "python",
+      "status": "passed",
+      "passed_tests": 4,
+      "total_tests": 4,
+      "execution_time_ms": 120,
+      "xp_earned": 10,
+      "error_message": "",
+      "created_at": "2026-09-27T07:00:47.870Z"
+    },
+    {
+      "id": "sub-demo-2",
+      "user_id": "usr-demo-1",
+      "challenge_id": "ch-py-2",
+      "code": "import sys\nimport json\n\ndef chunk_list(arr, size):\n    result = []\n    for i in range(0, len(arr), size):\n        result.append(arr[i:i + size])\n    return result\n\nif __name__ == '__main__':\n    raw = sys.stdin.read().strip()\n    if raw:\n        data = json.loads(raw)\n        arr = data['arr']\n        size = data['size']\n        print(json.dumps(chunk_list(arr, size)))\n",
+      "language": "python",
+      "status": "passed",
+      "passed_tests": 4,
+      "total_tests": 4,
+      "execution_time_ms": 95,
+      "xp_earned": 10,
+      "error_message": "",
+      "created_at": "2026-09-27T19:00:47.870Z"
+    },
+    {
+      "id": "sub-demo-3",
+      "user_id": "usr-demo-1",
+      "challenge_id": "ch-js-1",
+      "code": "function formatCurrency(amount, symbol = '$') {\n  if (typeof amount !== 'number' || isNaN(amount)) {\n    return 'Invalid Amount';\n  }\n  const formatted = amount.toFixed(2);\n  return `${symbol}${formatted}`;\n}\n\nconst readline = require('readline');\nconst rl = readline.createInterface({ input: process.stdin });\nlet input = '';\nrl.on('line', line => { input += line; });\nrl.on('close', () => {\n  if (input.trim()) {\n    const data = JSON.parse(input);\n    console.log(formatCurrency(data.amount, data.symbol));\n  }\n});\n",
+      "language": "javascript",
+      "status": "passed",
+      "passed_tests": 4,
+      "total_tests": 4,
+      "execution_time_ms": 45,
+      "xp_earned": 10,
+      "error_message": "",
+      "created_at": "2026-09-28T05:00:47.870Z"
+    },
+    {
+      "user_id": "usr-demo-1",
+      "challenge_id": "ch-py-4",
+      "code": "import sys, json\n\ndef binary_search(arr, target):\n    left = 0\n    right = len(arr) - 1\n    while left <= right:\n        mid = (left + right) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n    return -1\n\nif __name__ == \"__main__\":\n    raw = sys.stdin.read().strip()\n    if raw:\n        data = json.loads(raw)\n        print(binary_search(data[\"arr\"], data[\"target\"]))",
+      "language": "python",
+      "status": "passed",
+      "passed_tests": 4,
+      "total_tests": 4,
+      "execution_time_ms": 201,
+      "xp_earned": 25,
+      "error_message": "",
+      "id": "sub-5be8daed",
+      "created_at": "2026-09-28T07:01:14.443Z"
+    },
+    {
+      "user_id": "usr-demo-1",
+      "challenge_id": "ch-py-4",
+      "code": "import sys, json\n\ndef binary_search(arr, target):\n    left = 0\n    right = len(arr) - 1\n    while left <= right:\n        mid = (left + right) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            left = mid + 1\n        else:\n            right = mid - 1\n    return -1\n\nif __name__ == \"__main__\":\n    raw = sys.stdin.read().strip()\n    if raw:\n        data = json.loads(raw)\n        print(binary_search(data[\"arr\"], data[\"target\"]))",
+      "language": "python",
+      "status": "passed",
+      "passed_tests": 4,
+      "total_tests": 4,
+      "execution_time_ms": 154,
+      "xp_earned": 0,
+      "error_message": "",
+      "id": "sub-df08618b",
+      "created_at": "2026-09-28T07:01:20.566Z"
+    }
+  ],
+  "badges": [
+    {
+      "id": "badge-1",
+      "key": "first-bug-fixed",
+      "name": "First Bug Fixed",
+      "description": "Squashed your very first software bug in BugHunt.",
+      "icon": "Bug",
+      "category": "milestone",
+      "xp_bonus": 50
+    },
+    {
+      "id": "badge-2",
+      "key": "python-pro",
+      "name": "Python Pro",
+      "description": "Successfully solved 3 Python debugging challenges.",
+      "icon": "Terminal",
+      "category": "language",
+      "xp_bonus": 75
+    },
+    {
+      "id": "badge-3",
+      "key": "js-wizard",
+      "name": "JS Wizard",
+      "description": "Mastered 3 JavaScript debugging challenges.",
+      "icon": "Code2",
+      "category": "language",
+      "xp_bonus": 75
+    },
+    {
+      "id": "badge-4",
+      "key": "c-hacker",
+      "name": "C Hacker",
+      "description": "Diagnosed and repaired memory/syntax bugs in C.",
+      "icon": "Cpu",
+      "category": "language",
+      "xp_bonus": 100
+    },
+    {
+      "id": "badge-5",
+      "key": "java-titan",
+      "name": "Java Titan",
+      "description": "Overcame object references and exceptions in Java.",
+      "icon": "Coffee",
+      "category": "language",
+      "xp_bonus": 100
+    },
+    {
+      "id": "badge-6",
+      "key": "7-day-streak",
+      "name": "7-Day Streak",
+      "description": "Maintained an unbroken daily debugging streak for 7 days.",
+      "icon": "Flame",
+      "category": "streak",
+      "xp_bonus": 150
+    },
+    {
+      "id": "badge-7",
+      "key": "debugging-master",
+      "name": "Debugging Master",
+      "description": "Repaired 10 or more bugs across all languages.",
+      "icon": "Trophy",
+      "category": "mastery",
+      "xp_bonus": 200
+    },
+    {
+      "id": "badge-8",
+      "key": "speed-demon",
+      "name": "Speed Demon",
+      "description": "Solved a challenge in under 120 seconds.",
+      "icon": "Zap",
+      "category": "performance",
+      "xp_bonus": 50
+    }
+  ],
+  "user_badges": [
+    {
+      "id": "ub-1",
+      "user_id": "usr-demo-1",
+      "badge_id": "badge-1",
+      "unlocked_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ub-2",
+      "user_id": "usr-demo-1",
+      "badge_id": "badge-2",
+      "unlocked_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ub-3",
+      "user_id": "usr-admin-1",
+      "badge_id": "badge-1",
+      "unlocked_at": "2026-09-28T07:00:47.869Z"
+    },
+    {
+      "id": "ub-4",
+      "user_id": "usr-admin-1",
+      "badge_id": "badge-7",
+      "unlocked_at": "2026-09-28T07:00:47.869Z"
+    }
+  ],
+  "daily_activity": [
+    {
+      "id": "da-1",
+      "user_id": "usr-demo-1",
+      "date": "2026-09-28",
+      "challenges_solved": 2,
+      "xp_earned": 35
+    },
+    {
+      "id": "da-2",
+      "user_id": "usr-demo-1",
+      "date": "2026-09-27",
+      "challenges_solved": 2,
+      "xp_earned": 20
+    }
+  ]
+}

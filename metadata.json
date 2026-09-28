@@ -1,0 +1,6 @@
+{
+  "name": "BugHunt - Gamified Debugging & Code Arena",
+  "description": "Learn programming by finding and fixing bugs in broken code. Solve challenges across Python, JavaScript, Java, and C, unlock achievements, maintain streaks, and climb the leaderboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
