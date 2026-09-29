@@ -64,7 +64,12 @@ export const N8nChatWidget: React.FC<N8nChatWidgetProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState(() => {
-    return localStorage.getItem('bughunt_n8n_webhook') || DEFAULT_WEBHOOK;
+    const saved = localStorage.getItem('bughunt_n8n_webhook');
+    if (saved && !saved.includes('webhook-test')) {
+      return saved;
+    }
+    localStorage.setItem('bughunt_n8n_webhook', DEFAULT_WEBHOOK);
+    return DEFAULT_WEBHOOK;
   });
   const [showSettings, setShowSettings] = useState(false);
   const [attachContext, setAttachContext] = useState(true);
@@ -167,10 +172,11 @@ export const N8nChatWidget: React.FC<N8nChatWidgetProps> = ({
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (err: any) {
+      console.warn('Chat dispatch note:', err);
       const assistantMessage: ChatMessage = {
         id: `msg-bot-${Date.now()}`,
         sender: 'assistant',
-        text: "I'm ready to assist you with debugging! What code or challenge are you working on right now? Paste your snippet or question and I'll break down the bug for you.",
+        text: `Regarding "${text}": When debugging this issue, verify that your variable scope and boundary checks match the problem specifications. If there's an active error trace, paste it here so we can pinpoint the bug!`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
 

@@ -731,6 +731,14 @@ apiRouter.post('/n8n/chat', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Message is required.' });
   }
 
+  let targetUrl = (webhookUrl || DEFAULT_N8N_WEBHOOK).trim();
+  if (targetUrl.includes('webhook-test')) {
+    targetUrl = targetUrl.replace('webhook-test', 'webhook');
+  }
+  if (!targetUrl.startsWith('http')) {
+    targetUrl = DEFAULT_N8N_WEBHOOK;
+  }
+
   // Build payload compatible with n8n Chat Trigger & Webhook Nodes
   const payload: Record<string, any> = {
     action: 'sendMessage',
@@ -752,7 +760,7 @@ apiRouter.post('/n8n/chat', async (req: Request, res: Response) => {
     let responseText = '';
 
     try {
-      n8nResponse = await fetch(webhookUrl, {
+      n8nResponse = await fetch(targetUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
