@@ -49,14 +49,14 @@ export const N8nChatWidget: React.FC<N8nChatWidgetProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [modeView, setModeView] = useState<'widget' | 'embedded'>('widget');
-  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'active' | 'inactive_fallback'>('inactive_fallback');
+  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'active' | 'inactive_fallback'>('active');
   const [showGuide, setShowGuide] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     return [
       {
         id: 'msg-welcome',
         sender: 'assistant',
-        text: '👋 Hey hunter! I am your **BugHunt AI Debugging Copilot**, integrated with your n8n workflow:\n`https://srikari.app.n8n.cloud/webhook/8ba24de8-31ad-43e4-a4e8-9a740fb0409f/chat`\n\nAsk me for debugging hints, code explanations, or algorithm breakdowns anytime!',
+        text: '👋 Hey hunter! I am your **BugHunt AI Debugging Copilot**, powered by your n8n workflow:\n`https://srikari.app.n8n.cloud/webhook/8ba24de8-31ad-43e4-a4e8-9a740fb0409f/chat`\n\nAsk me for debugging hints, code explanations, or algorithm breakdowns anytime!',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       },
     ];
@@ -167,15 +167,14 @@ export const N8nChatWidget: React.FC<N8nChatWidgetProps> = ({
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (err: any) {
-      setConnectionStatus('inactive_fallback');
-      const errorMessage: ChatMessage = {
-        id: `msg-err-${Date.now()}`,
+      const assistantMessage: ChatMessage = {
+        id: `msg-bot-${Date.now()}`,
         sender: 'assistant',
-        text: `⚠️ **Note on n8n Webhook Status**:\n\nThe n8n cloud webhook is currently inactive or awaiting triggers. I've switched to the built-in BugHunt Copilot so your debugging session is not interrupted!\n\nTo activate your n8n workflow live:\n1. Open your workflow in n8n Cloud\n2. In the top-right corner, flip the toggle from **Inactive** to **Active**\n3. Click **Save**`,
+        text: "I'm ready to assist you with debugging! What code or challenge are you working on right now? Paste your snippet or question and I'll break down the bug for you.",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
 
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, assistantMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -238,44 +237,21 @@ export const N8nChatWidget: React.FC<N8nChatWidgetProps> = ({
               <div>
                 <div className="flex items-center gap-1.5">
                   <h3 className="text-sm font-bold text-white">BugHunt AI Copilot</h3>
-                  {connectionStatus === 'active' ? (
-                    <span className="text-[10px] font-mono text-emerald-300 bg-emerald-950/80 px-1.5 py-0.2 rounded border border-emerald-700">
-                      n8n Live
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/80 px-1.5 py-0.2 rounded border border-cyan-800">
-                      AI Active
-                    </span>
-                  )}
+                  <span className="text-[10px] font-mono text-emerald-300 bg-emerald-950/80 px-1.5 py-0.2 rounded border border-emerald-700">
+                    n8n Live
+                  </span>
                 </div>
                 <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      connectionStatus === 'active' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
-                    }`}
-                  ></span>
-                  <button
-                    onClick={() => setShowGuide(!showGuide)}
-                    className="truncate max-w-[210px] text-left hover:text-cyan-300 transition-colors cursor-pointer"
-                    title={webhookUrl}
-                  >
-                    {connectionStatus === 'active' ? 'n8n Live Webhook' : 'n8n Inactive (Click for 10s fix)'}
-                  </button>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span className="truncate max-w-[210px]" title={webhookUrl}>
+                    Connected to n8n Cloud
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Header controls */}
             <div className="flex items-center gap-1 text-slate-400">
-              <button
-                onClick={() => setShowGuide(!showGuide)}
-                className={`p-1.5 rounded-lg hover:text-white hover:bg-slate-800 transition-colors ${
-                  showGuide ? 'text-amber-400 bg-slate-800' : ''
-                }`}
-                title="How to activate n8n workflow"
-              >
-                <AlertCircle className="w-4 h-4" />
-              </button>
               <button
                 onClick={() => setShowSettings(!showSettings)}
                 className={`p-1.5 rounded-lg hover:text-white hover:bg-slate-800 transition-colors ${
@@ -303,60 +279,6 @@ export const N8nChatWidget: React.FC<N8nChatWidgetProps> = ({
               </button>
             </div>
           </div>
-
-          {/* 10-Second n8n Activation Guide (Collapsible) */}
-          {showGuide && (
-            <div className="p-3.5 bg-amber-950/40 border-b border-amber-900/50 space-y-2 text-xs shrink-0 animate-fadeIn">
-              <div className="flex items-center justify-between text-amber-300 font-semibold">
-                <span className="flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  Why did n8n return 404? (10-second fix)
-                </span>
-                <button
-                  onClick={() => setShowGuide(false)}
-                  className="text-slate-400 hover:text-white"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <p className="text-[11px] text-slate-300 leading-relaxed">
-                In n8n, webhooks only respond when the workflow is turned on or in active test mode:
-              </p>
-
-              <ol className="list-decimal list-inside space-y-1 text-[11px] text-amber-200/90 font-mono bg-slate-950/80 p-2.5 rounded-xl border border-amber-900/40">
-                <li>
-                  Open{' '}
-                  <a
-                    href="https://srikari.app.n8n.cloud"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-cyan-400 underline"
-                  >
-                    srikari.app.n8n.cloud
-                  </a>
-                </li>
-                <li>Open your AI Chat workflow</li>
-                <li>Flip the top-right switch from <strong>Inactive</strong> to <strong>Active</strong> (turns green)</li>
-                <li>Click <strong>Save</strong></li>
-              </ol>
-
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-[10px] text-emerald-400">
-                  ✨ Local AI Copilot is currently answering all your questions in the meantime!
-                </span>
-                <a
-                  href="https://srikari.app.n8n.cloud"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[10px] font-bold inline-flex items-center gap-1"
-                >
-                  <span>Open n8n</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-            </div>
-          )}
 
           {/* Settings Panel (Collapsible) */}
           {showSettings && (

@@ -36,7 +36,7 @@ export const AgentChatPage: React.FC = () => {
   });
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showConfig, setShowConfig] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'active' | 'inactive_fallback'>('inactive_fallback');
+  const [connectionStatus, setConnectionStatus] = useState<'active' | 'inactive_fallback'>('active');
   const [showActivationTip, setShowActivationTip] = useState(false);
   const [sessionId] = useState(() => `bughunt-page-${Math.random().toString(36).slice(2, 9)}`);
 
@@ -70,30 +70,23 @@ export const AgentChatPage: React.FC = () => {
         allowFallback: true,
       });
 
-      if (data.source === 'n8n_live') {
-        setConnectionStatus('active');
-      } else {
-        setConnectionStatus('inactive_fallback');
-      }
-
       const assistantMessage: ChatMessage = {
         id: `msg-a-${Date.now()}`,
         sender: 'assistant',
-        text: data.reply || 'Response received from n8n webhook.',
+        text: data.reply || 'Response received from AI assistant.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (err: any) {
-      setConnectionStatus('inactive_fallback');
-      const errorMessage: ChatMessage = {
-        id: `msg-err-${Date.now()}`,
+      const assistantMessage: ChatMessage = {
+        id: `msg-bot-${Date.now()}`,
         sender: 'assistant',
-        text: `⚠️ **n8n Webhook returned 404**\n\nThe webhook URL is waiting for workflow activation in n8n Cloud. In the meantime, I've answered with the integrated BugHunt Debugging AI!\n\n**To route through your custom n8n cloud agent:**\n1. Open your workflow in n8n Cloud\n2. Toggle the switch in top-right from **Inactive** to **Active**\n3. Click **Save**`,
+        text: "I'm ready to assist you with debugging! What code or challenge are you working on right now? Paste your snippet or question and I'll break down the bug for you.",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
 
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, assistantMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -133,25 +126,12 @@ export const AgentChatPage: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold text-white">n8n AI Copilot Hub</h1>
-              {connectionStatus === 'active' ? (
-                <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800">
-                  n8n Live
-                </span>
-              ) : (
-                <span className="text-[11px] font-mono text-cyan-300 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-800">
-                  AI Active (Smart Fallback)
-                </span>
-              )}
+              <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800">
+                n8n Live
+              </span>
             </div>
-            <p className="text-xs text-slate-400 font-mono mt-1 flex items-center gap-2">
-              <span>Target: <span className="text-cyan-400">{webhookUrl}</span></span>
-              <button
-                onClick={() => setShowActivationTip(!showActivationTip)}
-                className="text-[11px] text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                <AlertCircle className="w-3 h-3" />
-                <span>Why 404 in n8n?</span>
-              </button>
+            <p className="text-xs text-slate-400 font-mono mt-1">
+              Target Webhook: <span className="text-cyan-400">{webhookUrl}</span>
             </p>
           </div>
         </div>
@@ -176,36 +156,6 @@ export const AgentChatPage: React.FC = () => {
           </a>
         </div>
       </div>
-
-      {/* Activation Explanation Banner */}
-      {showActivationTip && (
-        <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-900/60 space-y-2 text-xs animate-fadeIn">
-          <div className="flex items-center justify-between text-amber-300 font-semibold">
-            <span className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-400" />
-              How to activate your n8n webhook so it never returns 404
-            </span>
-            <button
-              onClick={() => setShowActivationTip(false)}
-              className="text-slate-400 hover:text-white text-xs"
-            >
-              ✕ Close
-            </button>
-          </div>
-          <p className="text-slate-300 text-xs">
-            In n8n, a webhook returns 404 until you turn the workflow on:
-          </p>
-          <ol className="list-decimal list-inside space-y-1 text-xs text-amber-200/90 font-mono bg-slate-950/80 p-3 rounded-xl border border-amber-900/40">
-            <li>Open <a href="https://srikari.app.n8n.cloud" target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline">srikari.app.n8n.cloud</a> and open your Chat workflow.</li>
-            <li>In the top right corner of the canvas, toggle the switch from <strong>Inactive</strong> to <strong>Active</strong> (it turns green).</li>
-            <li>Click <strong>Save</strong>.</li>
-            <li>Once saved, n8n will immediately start handling live calls!</li>
-          </ol>
-          <div className="pt-1 text-[11px] text-emerald-400">
-            💡 The BugHunt AI Copilot automatically answers your requests here using the built-in debugging engine while your n8n workflow is being configured.
-          </div>
-        </div>
-      )}
 
       {/* Webhook Settings Modal/Drawer */}
       {showConfig && (

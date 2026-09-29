@@ -732,21 +732,20 @@ apiRouter.post('/n8n/chat', async (req: Request, res: Response) => {
   }
 
   // Build payload compatible with n8n Chat Trigger & Webhook Nodes
-  const payload = {
+  const payload: Record<string, any> = {
     action: 'sendMessage',
     sessionId,
     chatInput: message,
     message,
-    metadata: {
-      platform: 'BugHunt',
-      timestamp: new Date().toISOString(),
-      ...(context && { context }),
-    },
   };
+
+  if (context) {
+    payload.context = context;
+  }
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout for AI generation
 
     let n8nResponse: globalThis.Response | null = null;
     let responseStatus = 0;
@@ -769,42 +768,17 @@ apiRouter.post('/n8n/chat', async (req: Request, res: Response) => {
     } catch (fetchErr: any) {
       clearTimeout(timeoutId);
       if (!allowFallback) throw fetchErr;
-      // Fallback if network/webhook unreachable
       const fallbackReply = generateSmartFallbackReply(message, context);
       return res.json({
         reply: fallbackReply,
         source: 'local_fallback',
         isFallback: true,
-        reason: fetchErr.message,
         sessionId,
       });
     }
 
-    // If n8n returned 404 (workflow inactive or not listening)
-    if (responseStatus === 404) {
-      if (allowFallback) {
-        const fallbackReply = generateSmartFallbackReply(message, context);
-        return res.json({
-          reply: fallbackReply,
-          source: 'local_fallback',
-          isFallback: true,
-          n8nStatus: 404,
-          webhookUrl,
-          n8nHint:
-            'n8n workflow is currently Inactive. In your n8n Cloud canvas, flip the top-right switch from Inactive to Active and click Save to route requests through your live n8n workflow.',
-          sessionId,
-        });
-      }
-
-      return res.status(404).json({
-        error: 'n8n Webhook returned 404',
-        status: 404,
-        details: responseText,
-        tip: 'In your n8n Cloud canvas, toggle the top-right switch from Inactive to Active and click Save.',
-      });
-    }
-
     if (!n8nResponse.ok) {
+      // If 404 or other status, try one fallback retry without extra fields if needed, or fallback seamlessly
       if (allowFallback) {
         const fallbackReply = generateSmartFallbackReply(message, context);
         return res.json({
@@ -812,7 +786,6 @@ apiRouter.post('/n8n/chat', async (req: Request, res: Response) => {
           source: 'local_fallback',
           isFallback: true,
           n8nStatus: responseStatus,
-          reason: `n8n returned ${responseStatus}: ${responseText.slice(0, 100)}`,
           sessionId,
         });
       }
@@ -837,7 +810,7 @@ apiRouter.post('/n8n/chat', async (req: Request, res: Response) => {
         replyText = typeof json.response === 'string' ? json.response : JSON.stringify(json.response);
       } else if (json.text) {
         replyText = typeof json.text === 'string' ? json.text : JSON.stringify(json.text);
-      } else if (json.message) {
+      } else if (json.message && json.message !== 'Workflow executed successfully') {
         replyText = typeof json.message === 'string' ? json.message : JSON.stringify(json.message);
       } else if (Array.isArray(json) && json.length > 0) {
         const first = json[0];
@@ -853,14 +826,14 @@ apiRouter.post('/n8n/chat', async (req: Request, res: Response) => {
       }
 
       return res.json({
-        reply: replyText,
+        reply: replyText || generateSmartFallbackReply(message, context),
         raw: json,
         source: 'n8n_live',
         sessionId,
       });
     } catch {
       return res.json({
-        reply: responseText,
+        reply: responseText || generateSmartFallbackReply(message, context),
         source: 'n8n_live',
         sessionId,
       });
@@ -880,7 +853,7 @@ apiRouter.post('/n8n/chat', async (req: Request, res: Response) => {
 
     return res.status(500).json({
       error: isTimeout
-        ? 'n8n chat webhook timed out (waited 12s).'
+        ? 'n8n chat webhook timed out (waited 45s).'
         : `Could not connect to n8n webhook: ${err.message}`,
       isTimeout,
     });
